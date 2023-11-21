@@ -5,6 +5,8 @@ import indexRoutes from './routes/index';
 import authRoutes from './routes/auth';
 import itemsRoutes from './routes/items';
 import eventRoutes from './routes/event';
+import subscriptionRoutes from './routes/subscription';
+import logRoutes from './routes/log';
 import connectDB from './db';
 import dotenv from 'dotenv';
 
@@ -36,8 +38,8 @@ app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/items', authenticateToken, itemsRoutes);
 app.use('/events', authenticateToken, eventRoutes);
-
-// ... (remaining code)
+app.use('/logs', authenticateToken, logRoutes);
+app.use('/subscriptions', authenticateToken, subscriptionRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

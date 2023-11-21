@@ -7,6 +7,8 @@ interface IEvent extends Document {
   maxSubscriberCount: number;
   eventCode: string;
   eventCount: number;
+  value: number;
+  visibility: string;
 }
 
 const eventSchema = new Schema({

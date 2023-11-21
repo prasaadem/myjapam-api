@@ -1,6 +1,7 @@
 // src/controllers/eventController.ts
 import { Request, Response } from 'express';
 import Event from '../models/event';
+import Subscription from '../models/subscription';
 
 export async function createEvent(req: Request, res: Response): Promise<void> {
   const { title, subtitle, maxSubscriberCount } = req.body;
@@ -23,8 +24,45 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
 
 export async function getAllEvents(req: Request, res: Response): Promise<void> {
   try {
-    const events = await Event.find();
+    const { visibility } = req.query;
+    const query = visibility ? { visibility } : {};
+
+    const events = await Event.find(query);
     res.status(200).json(events);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+export async function getEventById(req: Request, res: Response): Promise<void> {
+  const eventId = req.params.id;
+
+  try {
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      res.status(404).json({ message: 'Event not found' });
+      return;
+    }
+
+    // Count the number of subscriptions for the event
+    const subscriptionCount = await Subscription.countDocuments({
+      event: eventId,
+    });
+
+    // Include the subscription count in the response
+    const eventDetails = {
+      _id: event._id,
+      title: event.title,
+      subtitle: event.subtitle,
+      maxSubscriberCount: event.maxSubscriberCount,
+      eventCode: event.eventCode,
+      value: event.value,
+      visibility: event.visibility,
+      subscription_count: subscriptionCount,
+    };
+
+    res.status(200).json(eventDetails);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
