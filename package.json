@@ -4,7 +4,8 @@
   "description": "",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "rm -rf dist && npx tsc && nodemon dist/server.js"
+    "dev": "rm -rf dist && npx tsc && nodemon dist/server.js",
+    "start": "npm i && npx tsc && node dist/server.js"
   },
   "repository": {
     "type": "git",
