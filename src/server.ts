@@ -9,8 +9,27 @@ import subscriptionRoutes from './routes/subscription';
 import logRoutes from './routes/log';
 import dotenv from 'dotenv';
 import { connectToDatabase } from './db';
+import cors from 'cors';
 
 dotenv.config();
+
+// Define a whitelist of allowed origins
+const whitelist = ['http://localhost:3000', 'http://localhost:19006'];
+
+const corsOptions = {
+  origin: (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+  ) => {
+    // Allow requests from the whitelist, and allow requests with no origin (e.g., same-origin requests)
+    if (!origin || whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      // Disallow requests from other origins
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+};
 
 async function startServer() {
   try {
@@ -19,6 +38,7 @@ async function startServer() {
     const app: Application = express();
     const PORT: number = parseInt(process.env.PORT as string, 10) || 3000;
 
+    app.use(cors(corsOptions));
     app.use(express.json());
 
     const authenticateToken = (req: any, res: Response, next: NextFunction) => {
