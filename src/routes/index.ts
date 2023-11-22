@@ -30,15 +30,12 @@ router.get('/check-db', async (req, res) => {
     const connection = await connectToDatabase();
 
     if (connection) {
-      res.send(200).json({ status: 'Connected to the database' });
+      res.send('Connected to the database');
     } else {
-      res.status(500).json({ status: 'Database connection is closed' });
+      res.send('Database connection is closed');
     }
   } catch (error: any) {
-    res.status(500).json({
-      status: 'Error connecting to the database',
-      error: error.message,
-    });
+    res.send('Error connecting to the database');
   }
 });
 
