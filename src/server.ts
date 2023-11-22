@@ -7,40 +7,52 @@ import itemsRoutes from './routes/items';
 import eventRoutes from './routes/event';
 import subscriptionRoutes from './routes/subscription';
 import logRoutes from './routes/log';
-import connectDB from './db';
 import dotenv from 'dotenv';
+import { connectToDatabase } from './db';
 
 dotenv.config();
 
-const app: Application = express();
-const PORT: number = parseInt(process.env.PORT as string, 10) || 3000;
+async function startServer() {
+  try {
+    await connectToDatabase();
 
-connectDB();
+    const app: Application = express();
+    const PORT: number = parseInt(process.env.PORT as string, 10) || 3000;
 
-app.use(express.json());
+    app.use(express.json());
 
-const authenticateToken = (req: any, res: Response, next: NextFunction) => {
-  const token = req.header('Authorization');
-  if (!token) {
-    return next(new errors.UnauthorizedError('Access denied'));
+    const authenticateToken = (req: any, res: Response, next: NextFunction) => {
+      const token = req.header('Authorization');
+      if (!token) {
+        return next(new errors.UnauthorizedError('Access denied'));
+      }
+
+      jwt.verify(
+        token,
+        process.env.SECRET_KEY as string,
+        (err: any, user: any) => {
+          if (err) {
+            return next(new errors.UnauthorizedError('Invalid token'));
+          }
+          req.user = user;
+          next();
+        }
+      );
+    };
+
+    app.use('/', indexRoutes);
+    app.use('/auth', authRoutes);
+    app.use('/items', authenticateToken, itemsRoutes);
+    app.use('/events', authenticateToken, eventRoutes);
+    app.use('/logs', authenticateToken, logRoutes);
+    app.use('/subscriptions', authenticateToken, subscriptionRoutes);
+
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
+  } catch (error: any) {
+    console.error('Failed to start the server:', error.message);
   }
+}
 
-  jwt.verify(token, process.env.SECRET_KEY as string, (err: any, user: any) => {
-    if (err) {
-      return next(new errors.UnauthorizedError('Invalid token'));
-    }
-    req.user = user;
-    next();
-  });
-};
-
-app.use('/', indexRoutes);
-app.use('/auth', authRoutes);
-app.use('/items', authenticateToken, itemsRoutes);
-app.use('/events', authenticateToken, eventRoutes);
-app.use('/logs', authenticateToken, logRoutes);
-app.use('/subscriptions', authenticateToken, subscriptionRoutes);
-
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+startServer();
