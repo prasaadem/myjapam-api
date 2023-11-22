@@ -4,7 +4,7 @@ import { connectToDatabase } from '../db';
 const router = Router();
 
 router.get('/', (req, res) => {
-  res.send('Home Page Welcome');
+  res.send('Home Page');
 });
 
 // Check database connection
@@ -12,7 +12,7 @@ router.get('/check-db', async (req, res) => {
   try {
     const connection = await connectToDatabase();
 
-    if (connection.readyState === 1) {
+    if (connection) {
       res.send(200).json({ status: 'Connected to the database' });
     } else {
       res.status(500).json({ status: 'Database connection is closed' });
