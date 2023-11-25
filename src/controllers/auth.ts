@@ -12,7 +12,7 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
       const token = user.generateAuthToken();
       res.json({
         token,
-        message: `Welcome, ${user.first_name} ${user.last_name}!`,
+        user: user,
       });
     } else {
       res.status(401).json({ message: 'Invalid username or password' });
@@ -36,7 +36,7 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       const token = newUser.generateAuthToken();
       res.json({
         token,
-        message: `Welcome, ${newUser.first_name} ${newUser.last_name}!`,
+        user: newUser,
       });
     }
   } catch (error: any) {
