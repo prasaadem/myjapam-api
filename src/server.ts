@@ -14,7 +14,12 @@ import cors from 'cors';
 dotenv.config();
 
 // Define a whitelist of allowed origins
-const whitelist = ['http://localhost:3000', 'http://localhost:19006'];
+const whitelist = [
+  'http://localhost:3000',
+  'http://localhost:19006',
+  'https://myjapam.com',
+  'https://www.myjapam.com',
+];
 
 const corsOptions = {
   origin: (
