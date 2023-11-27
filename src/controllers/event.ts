@@ -4,14 +4,14 @@ import Event from '../models/event';
 import Subscription from '../models/subscription';
 
 export async function createEvent(req: Request, res: Response): Promise<void> {
-  const { title, subtitle, maxSubscriberCount } = req.body;
+  const { title, subtitle, maxSubscriberCount, value, visibility } = req.body;
 
   const newEvent = new Event({
     title,
     subtitle,
     maxSubscriberCount,
-    value: 1, // Assuming the initial count is 1
-    visibility: 'public',
+    value, // Assuming the initial count is 1
+    visibility,
   });
 
   try {
