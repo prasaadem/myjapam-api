@@ -2,9 +2,17 @@
 import { Request, Response } from 'express';
 import Event from '../models/event';
 import Subscription from '../models/subscription';
+import uploadToS3 from '../helpers/s3Uploader';
 
-export async function createEvent(req: Request, res: Response): Promise<void> {
+export async function createEvent(req: any, res: Response): Promise<void> {
   const { title, subtitle, maxSubscriberCount, value, visibility } = req.body;
+
+  const file = req.file;
+  let url: string = '';
+
+  if (file) {
+    url = await uploadToS3(file);
+  }
 
   const newEvent = new Event({
     title,
@@ -12,6 +20,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
     maxSubscriberCount,
     value, // Assuming the initial count is 1
     visibility,
+    url,
   });
 
   try {
@@ -24,8 +33,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
 
 export async function getAllEvents(req: Request, res: Response): Promise<void> {
   try {
-    const { visibility } = req.query;
-    const query = visibility ? { visibility } : {};
+    const query = req.query || {};
 
     const events = await Event.find(query);
     res.status(200).json(events);
@@ -55,6 +63,7 @@ export async function getEventById(req: Request, res: Response): Promise<void> {
       _id: event._id,
       title: event.title,
       subtitle: event.subtitle,
+      url: event.url,
       maxSubscriberCount: event.maxSubscriberCount,
       eventCode: event.eventCode,
       value: event.value,
@@ -68,19 +77,25 @@ export async function getEventById(req: Request, res: Response): Promise<void> {
   }
 }
 
-export async function updateEventById(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function updateEventById(req: any, res: Response): Promise<void> {
   const eventId = req.params.id;
   const { title, subtitle, maxSubscriberCount, value, visibility } = req.body;
 
+  const file = req.file;
+  let url: string = '';
+
+  let data: any = { title, subtitle, maxSubscriberCount, value, visibility };
+
+  if (file) {
+    url = await uploadToS3(file);
+    data = { ...data, url: url };
+  }
+
   try {
-    const updatedEvent = await Event.findByIdAndUpdate(
-      eventId,
-      { title, subtitle, maxSubscriberCount, value, visibility },
-      { new: true, runValidators: true }
-    );
+    const updatedEvent = await Event.findByIdAndUpdate(eventId, data, {
+      new: true,
+      runValidators: true,
+    });
 
     if (updatedEvent) {
       res.status(200).json(updatedEvent);

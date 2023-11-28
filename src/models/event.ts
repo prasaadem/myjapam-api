@@ -9,6 +9,8 @@ interface IEvent extends Document {
   eventCount: number;
   value: number;
   visibility: string;
+  timestamp: Date;
+  url: string;
 }
 
 const eventSchema = new Schema({
@@ -42,6 +44,14 @@ const eventSchema = new Schema({
     required: true,
     enum: ['public', 'private', 'group'],
     default: 'public',
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
+  url: {
+    type: String,
+    required: true,
   },
 });
 

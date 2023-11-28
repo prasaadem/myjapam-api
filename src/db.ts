@@ -15,6 +15,7 @@ export const connectToDatabase = async (): Promise<Connection> => {
       connection = await mongoose.connect(DATABASE_URL, {
         dbName: DATABASE_NAME,
       });
+      console.log('connected to database');
     } catch (error: any) {
       console.error('Error connecting to the database:', error.message);
       throw error;
