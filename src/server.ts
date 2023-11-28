@@ -10,10 +10,6 @@ import logRoutes from './routes/log';
 import dotenv from 'dotenv';
 import { connectToDatabase } from './db';
 import cors from 'cors';
-const multer = require('multer');
-
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
 
 dotenv.config();
 
@@ -72,7 +68,7 @@ async function startServer() {
     app.use('/', indexRoutes);
     app.use('/auth', authRoutes);
     app.use('/items', authenticateToken, itemsRoutes);
-    app.use('/events', authenticateToken, upload.single('file'), eventRoutes);
+    app.use('/events', authenticateToken, eventRoutes);
     app.use('/logs', authenticateToken, logRoutes);
     app.use('/subscriptions', authenticateToken, subscriptionRoutes);
 

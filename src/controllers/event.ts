@@ -7,23 +7,22 @@ import uploadToS3 from '../helpers/s3Uploader';
 export async function createEvent(req: any, res: Response): Promise<void> {
   const { title, subtitle, maxSubscriberCount, value, visibility } = req.body;
 
-  const file = req.file;
-  let url: string = '';
-
-  if (file) {
-    url = await uploadToS3(file);
-  }
-
-  const newEvent = new Event({
-    title,
-    subtitle,
-    maxSubscriberCount,
-    value, // Assuming the initial count is 1
-    visibility,
-    url,
-  });
-
   try {
+    const file = req.file;
+    let url: string = '';
+
+    if (file) {
+      url = await uploadToS3(file);
+    }
+
+    const newEvent = new Event({
+      title,
+      subtitle,
+      maxSubscriberCount,
+      value, // Assuming the initial count is 1
+      visibility,
+      url,
+    });
     await newEvent.save();
     res.status(201).json(newEvent);
   } catch (error: any) {
@@ -81,17 +80,16 @@ export async function updateEventById(req: any, res: Response): Promise<void> {
   const eventId = req.params.id;
   const { title, subtitle, maxSubscriberCount, value, visibility } = req.body;
 
-  const file = req.file;
-  let url: string = '';
-
-  let data: any = { title, subtitle, maxSubscriberCount, value, visibility };
-
-  if (file) {
-    url = await uploadToS3(file);
-    data = { ...data, url: url };
-  }
-
   try {
+    const file = req.file;
+    let url: string = '';
+
+    let data: any = { title, subtitle, maxSubscriberCount, value, visibility };
+
+    if (file) {
+      url = await uploadToS3(file);
+      data = { ...data, url: url };
+    }
     const updatedEvent = await Event.findByIdAndUpdate(eventId, data, {
       new: true,
       runValidators: true,
