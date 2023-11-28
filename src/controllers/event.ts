@@ -3,9 +3,11 @@ import { Request, Response } from 'express';
 import Event from '../models/event';
 import Subscription from '../models/subscription';
 import uploadToS3 from '../helpers/s3Uploader';
+import mongoose from 'mongoose';
 
 export async function createEvent(req: any, res: Response): Promise<void> {
-  const { title, subtitle, maxSubscriberCount, value, visibility } = req.body;
+  const { title, subtitle, maxSubscriberCount, value, visibility, user_id } =
+    req.body;
 
   try {
     const file = req.file;
@@ -22,6 +24,7 @@ export async function createEvent(req: any, res: Response): Promise<void> {
       value, // Assuming the initial count is 1
       visibility,
       url,
+      user_id,
     });
     await newEvent.save();
     res.status(201).json(newEvent);
@@ -32,9 +35,42 @@ export async function createEvent(req: any, res: Response): Promise<void> {
 
 export async function getAllEvents(req: Request, res: Response): Promise<void> {
   try {
-    const query = req.query || {};
+    let { user_id, visibility } = req.body || {};
+    visibility =
+      (visibility || []).length > 0
+        ? visibility
+        : ['public', 'private', 'group'];
 
-    const events = await Event.find(query);
+    let query: any = [
+      {
+        $match: {
+          _id: { $exists: true },
+        },
+      },
+    ];
+
+    if (user_id || visibility.length) {
+      query = [
+        {
+          $match: {
+            $and: [
+              {
+                user_id: user_id
+                  ? new mongoose.Types.ObjectId(user_id)
+                  : { $exists: true },
+              },
+              {
+                visibility: {
+                  $in: visibility,
+                },
+              },
+            ],
+          },
+        },
+      ];
+    }
+
+    const events = await Event.aggregate(query);
     res.status(200).json(events);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -45,9 +81,26 @@ export async function getEventById(req: Request, res: Response): Promise<void> {
   const eventId = req.params.id;
 
   try {
-    const event = await Event.findById(eventId);
+    const events = await Event.aggregate([
+      {
+        $match: { _id: new mongoose.Types.ObjectId(eventId as string) },
+      },
+      {
+        $lookup: {
+          from: 'users', // Name of the User collection
+          localField: 'user_id',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      {
+        $addFields: {
+          userDetails: { $arrayElemAt: ['$user', 0] },
+        },
+      },
+    ]);
 
-    if (!event) {
+    if (events.length === 0) {
       res.status(404).json({ message: 'Event not found' });
       return;
     }
@@ -57,16 +110,11 @@ export async function getEventById(req: Request, res: Response): Promise<void> {
       event: eventId,
     });
 
+    const event = events[0];
+
     // Include the subscription count in the response
     const eventDetails = {
-      _id: event._id,
-      title: event.title,
-      subtitle: event.subtitle,
-      url: event.url,
-      maxSubscriberCount: event.maxSubscriberCount,
-      eventCode: event.eventCode,
-      value: event.value,
-      visibility: event.visibility,
+      ...event,
       subscription_count: subscriptionCount,
     };
 
@@ -102,5 +150,21 @@ export async function updateEventById(req: any, res: Response): Promise<void> {
     }
   } catch (error: any) {
     res.status(400).json({ message: error.message });
+  }
+}
+
+export async function deleteEventById(req: any, res: Response) {
+  const eventId = req.params.id;
+
+  try {
+    const deletedEvent = await Event.findByIdAndDelete(eventId);
+
+    if (deletedEvent) {
+      res.json({ message: 'Event deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Event not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 }

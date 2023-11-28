@@ -11,6 +11,7 @@ interface IEvent extends Document {
   visibility: string;
   timestamp: Date;
   url: string;
+  user_id: mongoose.Types.ObjectId;
 }
 
 const eventSchema = new Schema({
@@ -51,6 +52,11 @@ const eventSchema = new Schema({
   },
   url: {
     type: String,
+    required: true,
+  },
+  user_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
     required: true,
   },
 });
