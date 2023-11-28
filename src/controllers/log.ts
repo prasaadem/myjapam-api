@@ -35,8 +35,6 @@ export async function createLog(req: Request, res: Response): Promise<void> {
 export async function getAllLogs(req: Request, res: Response): Promise<void> {
   const { eventId, userId } = req.query;
 
-  console.log(eventId, userId, 'sap');
-
   const aggregationPipeline = [
     {
       $match: {
@@ -53,6 +51,32 @@ export async function getAllLogs(req: Request, res: Response): Promise<void> {
         _id: { event: '$event', user: '$user' },
         count: { $sum: 1 },
         logs: { $push: '$$ROOT' },
+      },
+    },
+    {
+      $lookup: {
+        from: 'events',
+        localField: '_id.event',
+        foreignField: '_id',
+        as: 'events',
+      },
+    },
+    {
+      $addFields: {
+        event: { $arrayElemAt: ['$events', 0] },
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id.user',
+        foreignField: '_id',
+        as: 'users',
+      },
+    },
+    {
+      $addFields: {
+        user: { $arrayElemAt: ['$users', 0] },
       },
     },
   ];

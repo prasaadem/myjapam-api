@@ -24,11 +24,9 @@ export async function createSubscription(
       user: userId,
     });
     if (existingSubscription) {
-      res
-        .status(400)
-        .json({
-          message: 'Subscription already exists for this event and user',
-        });
+      res.status(400).json({
+        message: 'Subscription already exists for this event and user',
+      });
       return;
     }
 
