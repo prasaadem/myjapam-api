@@ -5,6 +5,6 @@ import { createLog, getAllLogs } from '../controllers/log';
 const router: Router = Router();
 
 router.post('/', createLog);
-router.get('/', getAllLogs);
+router.post('/list', getAllLogs);
 
 export default router;

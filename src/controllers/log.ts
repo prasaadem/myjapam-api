@@ -33,17 +33,11 @@ export async function createLog(req: Request, res: Response): Promise<void> {
 }
 
 export async function getAllLogs(req: Request, res: Response): Promise<void> {
-  const { eventId, userId } = req.query;
-
+  const { eventId, userId } = req.body;
   const aggregationPipeline = [
     {
       $match: {
-        event: eventId
-          ? new mongoose.Types.ObjectId(eventId as string)
-          : { $exists: true },
-        user: userId
-          ? new mongoose.Types.ObjectId(userId as string)
-          : { $exists: true },
+        user: new mongoose.Types.ObjectId(userId),
       },
     },
     {
