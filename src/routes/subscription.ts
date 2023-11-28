@@ -7,6 +7,6 @@ import {
 const router: Router = Router();
 
 router.post('/', createSubscription);
-router.get('/', getAllSubscriptions);
+router.post('/list', getAllSubscriptions);
 
 export default router;

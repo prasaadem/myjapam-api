@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import Subscription from '../models/subscription';
 import Event from '../models/event';
+import mongoose from 'mongoose';
 
 export async function createSubscription(
   req: Request,
@@ -57,14 +58,11 @@ export async function getAllSubscriptions(
   res: Response
 ): Promise<void> {
   try {
-    const { userId, eventId } = req.query;
+    const { userId, eventId } = req.body;
 
     const query: any = {};
     if (userId) {
-      query['user'] = userId;
-    }
-    if (eventId) {
-      query['event'] = eventId;
+      query['user'] = new mongoose.Types.ObjectId(userId as string);
     }
     const subscriptions = await Subscription.find(query)
       .populate('event')
