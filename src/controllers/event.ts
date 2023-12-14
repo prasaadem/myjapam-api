@@ -1,9 +1,9 @@
 // src/controllers/eventController.ts
-import { Request, Response } from 'express';
-import Event from '../models/event';
-import Subscription from '../models/subscription';
-import uploadToS3 from '../helpers/s3Uploader';
-import mongoose from 'mongoose';
+import { Request, Response } from "express";
+import Event from "../models/event";
+import Subscription from "../models/subscription";
+import uploadToS3 from "../helpers/s3Uploader";
+import mongoose from "mongoose";
 
 export async function createEvent(req: any, res: Response): Promise<void> {
   const { title, subtitle, maxSubscriberCount, value, visibility, user_id } =
@@ -11,7 +11,7 @@ export async function createEvent(req: any, res: Response): Promise<void> {
 
   try {
     const file = req.file;
-    let url: string = '';
+    let url: string = "";
 
     if (file) {
       url = await uploadToS3(file);
@@ -39,7 +39,7 @@ export async function getAllEvents(req: Request, res: Response): Promise<void> {
     visibility =
       (visibility || []).length > 0
         ? visibility
-        : ['public', 'private', 'group'];
+        : ["public", "private", "group"];
 
     let query: any = [
       {
@@ -87,21 +87,21 @@ export async function getEventById(req: Request, res: Response): Promise<void> {
       },
       {
         $lookup: {
-          from: 'users', // Name of the User collection
-          localField: 'user_id',
-          foreignField: '_id',
-          as: 'user',
+          from: "users", // Name of the User collection
+          localField: "user_id",
+          foreignField: "_id",
+          as: "user",
         },
       },
       {
         $addFields: {
-          userDetails: { $arrayElemAt: ['$user', 0] },
+          userDetails: { $arrayElemAt: ["$user", 0] },
         },
       },
     ]);
 
     if (events.length === 0) {
-      res.status(404).json({ message: 'Event not found' });
+      res.status(404).json({ message: "Event not found" });
       return;
     }
 
@@ -124,13 +124,63 @@ export async function getEventById(req: Request, res: Response): Promise<void> {
   }
 }
 
+export async function getEventByCode(
+  req: Request,
+  res: Response
+): Promise<void> {
+  const eventCode = req.params.eventCode;
+
+  try {
+    const events = await Event.aggregate([
+      {
+        $match: { eventCode: eventCode },
+      },
+      {
+        $lookup: {
+          from: "users", // Name of the User collection
+          localField: "user_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $addFields: {
+          userDetails: { $arrayElemAt: ["$user", 0] },
+        },
+      },
+    ]);
+
+    if (events.length === 0) {
+      res.status(404).json({ message: "Event not found" });
+      return;
+    }
+
+    const event = events[0];
+
+    // Count the number of subscriptions for the event
+    const subscriptionCount = await Subscription.countDocuments({
+      event: event._id,
+    });
+
+    // Include the subscription count in the response
+    const eventDetails = {
+      ...event,
+      subscription_count: subscriptionCount,
+    };
+
+    res.status(200).json(eventDetails);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 export async function updateEventById(req: any, res: Response): Promise<void> {
   const eventId = req.params.id;
   const { title, subtitle, maxSubscriberCount, value, visibility } = req.body;
 
   try {
     const file = req.file;
-    let url: string = '';
+    let url: string = "";
 
     let data: any = { title, subtitle, maxSubscriberCount, value, visibility };
 
@@ -146,7 +196,7 @@ export async function updateEventById(req: any, res: Response): Promise<void> {
     if (updatedEvent) {
       res.status(200).json(updatedEvent);
     } else {
-      res.status(404).json({ message: 'Event not found' });
+      res.status(404).json({ message: "Event not found" });
     }
   } catch (error: any) {
     res.status(400).json({ message: error.message });
@@ -160,11 +210,11 @@ export async function deleteEventById(req: any, res: Response) {
     const deletedEvent = await Event.findByIdAndDelete(eventId);
 
     if (deletedEvent) {
-      res.json({ message: 'Event deleted successfully' });
+      res.json({ message: "Event deleted successfully" });
     } else {
-      res.status(404).json({ message: 'Event not found' });
+      res.status(404).json({ message: "Event not found" });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 }
