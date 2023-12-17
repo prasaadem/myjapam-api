@@ -91,10 +91,10 @@ export async function updateAllSubscriptions(
 
     // Update subscriptions based on the highest sum logs
     const updatePromises = highestSumLogs.map(async (log) => {
-      const { userId, eventId, maxSum } = log;
+      const { user, event, maxSum } = log;
 
       const updatedSubscription = await Subscription.findOneAndUpdate(
-        { user: userId, event: eventId },
+        { user: user, event: event },
         { sum: maxSum },
         { new: true }
       );
