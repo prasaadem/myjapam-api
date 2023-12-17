@@ -1,12 +1,14 @@
-import { Router } from 'express';
+import { Router } from "express";
 import {
   createSubscription,
   getAllSubscriptions,
-} from '../controllers/subscription';
+  updateAllSubscriptions,
+} from "../controllers/subscription";
 
 const router: Router = Router();
 
-router.post('/', createSubscription);
-router.post('/list', getAllSubscriptions);
+router.post("/", createSubscription);
+router.post("/list", getAllSubscriptions);
+router.post("/update", updateAllSubscriptions);
 
 export default router;

@@ -1,8 +1,9 @@
 // src/controllers/subscriptionController.ts
-import { Request, Response } from 'express';
-import Subscription from '../models/subscription';
-import Event from '../models/event';
-import mongoose from 'mongoose';
+import { Request, Response } from "express";
+import Subscription from "../models/subscription";
+import Event from "../models/event";
+import mongoose from "mongoose";
+import Log from "../models/log";
 
 export async function createSubscription(
   req: Request,
@@ -15,7 +16,7 @@ export async function createSubscription(
     const event = await Event.findById(eventId);
 
     if (!event) {
-      res.status(404).json({ message: 'Event not found' });
+      res.status(404).json({ message: "Event not found" });
       return;
     }
 
@@ -26,7 +27,7 @@ export async function createSubscription(
     });
     if (existingSubscription) {
       res.status(400).json({
-        message: 'Subscription already exists for this event and user',
+        message: "Subscription already exists for this event and user",
       });
       return;
     }
@@ -36,7 +37,7 @@ export async function createSubscription(
     if (existingSubscriptions.length >= event.maxSubscriberCount) {
       res
         .status(400)
-        .json({ message: 'Event has reached the maximum subscriber count' });
+        .json({ message: "Event has reached the maximum subscriber count" });
       return;
     }
 
@@ -62,13 +63,50 @@ export async function getAllSubscriptions(
 
     const query: any = {};
     if (userId) {
-      query['user'] = new mongoose.Types.ObjectId(userId as string);
+      query["user"] = new mongoose.Types.ObjectId(userId as string);
     }
     const subscriptions = await Subscription.find(query)
-      .populate('event')
-      .populate('user');
+      .populate("event")
+      .populate("user");
     res.status(200).json(subscriptions);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
+  }
+}
+
+export async function updateAllSubscriptions(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    // Find the log with the highest sum for each user and event
+    const highestSumLogs = await Log.aggregate([
+      {
+        $group: {
+          _id: { userId: "$user", eventId: "$event" },
+          maxSum: { $max: "$sum" },
+        },
+      },
+    ]);
+
+    // Update subscriptions based on the highest sum logs
+    const updatePromises = highestSumLogs.map(async (log) => {
+      const { userId, eventId, maxSum } = log;
+
+      const updatedSubscription = await Subscription.findOneAndUpdate(
+        { user: userId, event: eventId },
+        { sum: maxSum },
+        { new: true }
+      );
+
+      return updatedSubscription;
+    });
+
+    const updatedSubscriptions = await Promise.all(updatePromises);
+
+    res.json(updatedSubscriptions);
+  } catch (error) {
+    console.error("Error updating subscriptions:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }

@@ -1,8 +1,9 @@
 // src/controllers/logController.ts
-import { Request, Response } from 'express';
-import Log from '../models/log';
-import mongoose from 'mongoose';
-import Subscription from '../models/subscription';
+import { Request, Response } from "express";
+import Log from "../models/log";
+import mongoose from "mongoose";
+import Subscription from "../models/subscription";
+const AWS = require("aws-sdk");
 
 export async function createLog(req: Request, res: Response): Promise<void> {
   const { eventId, userId } = req.body;
@@ -16,7 +17,7 @@ export async function createLog(req: Request, res: Response): Promise<void> {
 
     if (!existingSubscription) {
       res.status(400).json({
-        message: 'You are not subscribed to this eveny.',
+        message: "You are not subscribed to this eveny.",
       });
       return;
     }
@@ -26,7 +27,18 @@ export async function createLog(req: Request, res: Response): Promise<void> {
       user: userId,
     });
     await newLog.save();
-    res.status(201).json(newLog);
+
+    const updatedSubscription = await Subscription.findOneAndUpdate(
+      { user: userId, event: eventId },
+      { sum: newLog.sum },
+      { new: true }
+    );
+
+    if (!updatedSubscription) {
+      res.status(404).json({ error: "Subscription not found" });
+    }
+
+    res.status(201).json({ newLog, updatedSubscription });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
@@ -42,35 +54,35 @@ export async function getAllLogs(req: Request, res: Response): Promise<void> {
     },
     {
       $group: {
-        _id: { event: '$event', user: '$user' },
+        _id: { event: "$event", user: "$user" },
         count: { $sum: 1 },
-        logs: { $push: '$$ROOT' },
+        logs: { $push: "$$ROOT" },
       },
     },
     {
       $lookup: {
-        from: 'events',
-        localField: '_id.event',
-        foreignField: '_id',
-        as: 'events',
+        from: "events",
+        localField: "_id.event",
+        foreignField: "_id",
+        as: "events",
       },
     },
     {
       $addFields: {
-        event: { $arrayElemAt: ['$events', 0] },
+        event: { $arrayElemAt: ["$events", 0] },
       },
     },
     {
       $lookup: {
-        from: 'users',
-        localField: '_id.user',
-        foreignField: '_id',
-        as: 'users',
+        from: "users",
+        localField: "_id.user",
+        foreignField: "_id",
+        as: "users",
       },
     },
     {
       $addFields: {
-        user: { $arrayElemAt: ['$users', 0] },
+        user: { $arrayElemAt: ["$users", 0] },
       },
     },
   ];
