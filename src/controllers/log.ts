@@ -38,7 +38,7 @@ export async function createLog(req: Request, res: Response): Promise<void> {
       res.status(404).json({ error: "Subscription not found" });
     }
 
-    res.status(201).json({ newLog, updatedSubscription });
+    res.status(201).json(newLog);
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
