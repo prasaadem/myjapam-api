@@ -23,7 +23,6 @@ const subscriptionSchema = new Schema({
     type: Date,
     default: Date.now,
   },
-  // Add other subscription fields as needed
   sum: { type: Number, default: 0 },
 });
 
