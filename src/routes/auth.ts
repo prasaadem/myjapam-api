@@ -14,6 +14,6 @@ router.post("/register", registerUser);
 
 router.put("/:id", updateUser);
 
-router.delete("/", deleteUser);
+router.delete("/delete", deleteUser);
 
 export default router;
