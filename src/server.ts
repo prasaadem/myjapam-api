@@ -1,24 +1,25 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import errors from 'restify-errors';
-import indexRoutes from './routes/index';
-import authRoutes from './routes/auth';
-import itemsRoutes from './routes/items';
-import eventRoutes from './routes/event';
-import subscriptionRoutes from './routes/subscription';
-import logRoutes from './routes/log';
-import dotenv from 'dotenv';
-import { connectToDatabase } from './db';
-import cors from 'cors';
+import express, { Application, Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import errors from "restify-errors";
+import indexRoutes from "./routes/index";
+import authRoutes from "./routes/auth";
+import itemsRoutes from "./routes/items";
+import eventRoutes from "./routes/event";
+import subscriptionRoutes from "./routes/subscription";
+import userRoutes from "./routes/user";
+import logRoutes from "./routes/log";
+import dotenv from "dotenv";
+import { connectToDatabase } from "./db";
+import cors from "cors";
 
 dotenv.config();
 
 // Define a whitelist of allowed origins
 const whitelist = [
-  'http://localhost:3000',
-  'http://localhost:19006',
-  'https://myjapam.com',
-  'https://www.myjapam.com',
+  "http://localhost:3000",
+  "http://localhost:19006",
+  "https://myjapam.com",
+  "https://www.myjapam.com",
 ];
 
 const corsOptions = {
@@ -31,7 +32,7 @@ const corsOptions = {
       callback(null, true);
     } else {
       // Disallow requests from other origins
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
   },
 };
@@ -47,9 +48,10 @@ async function startServer() {
     app.use(express.json());
 
     const authenticateToken = (req: any, res: Response, next: NextFunction) => {
-      const token = req.header('Authorization');
+      const token = req.header("Authorization");
+      console.log(token);
       if (!token) {
-        return next(new errors.UnauthorizedError('Access denied'));
+        return next(new errors.UnauthorizedError("Access denied"));
       }
 
       jwt.verify(
@@ -57,7 +59,7 @@ async function startServer() {
         process.env.SECRET_KEY as string,
         (err: any, user: any) => {
           if (err) {
-            return next(new errors.UnauthorizedError('Invalid token'));
+            return next(new errors.UnauthorizedError("Invalid token"));
           }
           req.user = user;
           next();
@@ -65,18 +67,19 @@ async function startServer() {
       );
     };
 
-    app.use('/', indexRoutes);
-    app.use('/auth', authRoutes);
-    app.use('/items', authenticateToken, itemsRoutes);
-    app.use('/events', authenticateToken, eventRoutes);
-    app.use('/logs', authenticateToken, logRoutes);
-    app.use('/subscriptions', authenticateToken, subscriptionRoutes);
+    app.use("/", indexRoutes);
+    app.use("/auth", authRoutes);
+    app.use("/items", authenticateToken, itemsRoutes);
+    app.use("/events", authenticateToken, eventRoutes);
+    app.use("/logs", authenticateToken, logRoutes);
+    app.use("/subscriptions", authenticateToken, subscriptionRoutes);
+    app.use("/users", authenticateToken, userRoutes);
 
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
     });
   } catch (error: any) {
-    console.error('Failed to start the server:', error.message);
+    console.error("Failed to start the server:", error.message);
   }
 }
 
