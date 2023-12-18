@@ -73,8 +73,6 @@ export const deleteUser = async (req: any, res: Response) => {
   try {
     const userIdFromToken = req.user?.userId;
 
-    console.log(req.user, userIdFromToken);
-
     if (!userIdFromToken) {
       return res.status(401).json({
         success: false,
