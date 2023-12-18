@@ -1,6 +1,6 @@
 // src/controllers/authController.ts
-import { Request, Response } from 'express';
-const { User } = require('../models/user');
+import { Request, Response } from "express";
+const { User } = require("../models/user");
 
 export async function loginUser(req: Request, res: Response): Promise<void> {
   const { username, password } = req.body;
@@ -15,7 +15,7 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
         user: user,
       });
     } else {
-      res.status(401).json({ message: 'Invalid username or password' });
+      res.status(401).json({ message: "Invalid username or password" });
     }
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -29,7 +29,7 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     const existingUser = await User.findOne({ username });
 
     if (existingUser) {
-      res.status(409).json({ message: 'Username already exists' });
+      res.status(409).json({ message: "Username already exists" });
     } else {
       const newUser = new User({ username, password, first_name, last_name });
       await newUser.save();
@@ -58,9 +58,42 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
     if (updatedUser) {
       res.status(200).json(updatedUser);
     } else {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: "User not found" });
     }
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
 }
+
+// Example deleteUser handler with authentication
+export const deleteUser = async (req: any, res: Response) => {
+  try {
+    const userIdFromToken = req.user?.id;
+
+    if (!userIdFromToken) {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Invalid or missing authentication token",
+        });
+    }
+
+    const deletedUser = await User.findByIdAndDelete(userIdFromToken);
+
+    if (!deletedUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "User deleted successfully",
+      user: deletedUser,
+    });
+  } catch (error: any) {
+    console.error("Error deleting user:", error.message);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
