@@ -55,20 +55,22 @@ export async function createSubscription(
 }
 
 export async function getAllSubscriptions(
-  req: Request,
+  req: any,
   res: Response
 ): Promise<void> {
   try {
-    const { userId, eventId } = req.body;
+    const userId = req.user?.userId;
 
     const query: any = {};
     if (userId) {
       query["user"] = new mongoose.Types.ObjectId(userId as string);
+      const subscriptions = await Subscription.find(query)
+        .populate("event")
+        .populate("user");
+      res.status(200).json(subscriptions);
+    } else {
+      res.status(200).json([]);
     }
-    const subscriptions = await Subscription.find(query)
-      .populate("event")
-      .populate("user");
-    res.status(200).json(subscriptions);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }

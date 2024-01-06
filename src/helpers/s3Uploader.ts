@@ -1,7 +1,7 @@
 // s3Uploader.js
 
-const aws = require('aws-sdk');
-import dotenv from 'dotenv';
+const aws = require("aws-sdk");
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -9,7 +9,7 @@ const s3 = new aws.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   region: process.env.AWS_REGION,
-  ACL: 'public-read',
+  ACL: "public-read",
 });
 
 const uploadToS3 = (file: any) => {
@@ -22,7 +22,7 @@ const uploadToS3 = (file: any) => {
 
     s3.upload(params, (err: any, data: any) => {
       if (err) {
-        reject('Error uploading file to S3.');
+        reject("Error uploading file to S3.");
       } else {
         resolve(data.Location);
       }

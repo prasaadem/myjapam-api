@@ -3,9 +3,10 @@ import { Router } from "express";
 import {
   createEvent,
   deleteEventById,
-  getAllEvents,
+  getAllPublicEvents,
   getEventByCode,
   getEventById,
+  getMyEvents,
   updateEventById,
 } from "../controllers/event";
 
@@ -17,7 +18,8 @@ const upload = multer({ storage: storage });
 const router: Router = Router();
 
 router.post("/", upload.single("file"), createEvent);
-router.post("/list", getAllEvents);
+router.post("/public", getAllPublicEvents);
+router.post("/my", getMyEvents);
 router.put("/:id", upload.single("file"), updateEventById);
 router.get("/:id", getEventById);
 router.get("/byCode/:eventCode", getEventByCode);
