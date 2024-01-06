@@ -33,42 +33,35 @@ export async function createEvent(req: any, res: Response): Promise<void> {
   }
 }
 
-export async function getAllEvents(req: Request, res: Response): Promise<void> {
+export async function getMyEvents(req: any, res: Response): Promise<void> {
   try {
-    let { user_id, visibility } = req.body || {};
-    visibility =
-      (visibility || []).length > 0
-        ? visibility
-        : ["public", "private", "group"];
+    const userId = req.user?.userId;
 
     let query: any = [
       {
-        $match: {
-          _id: { $exists: true },
-        },
+        $match: { user_id: new mongoose.Types.ObjectId(userId as string) },
       },
     ];
 
-    if (user_id || visibility.length) {
-      query = [
-        {
-          $match: {
-            $and: [
-              {
-                user_id: user_id
-                  ? new mongoose.Types.ObjectId(user_id)
-                  : { $exists: true },
-              },
-              {
-                visibility: {
-                  $in: visibility,
-                },
-              },
-            ],
-          },
+    const events = await Event.aggregate(query);
+    res.status(200).json(events);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+export async function getAllPublicEvents(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    let query: any = [
+      {
+        $match: {
+          visibility: "public",
         },
-      ];
-    }
+      },
+    ];
 
     const events = await Event.aggregate(query);
     res.status(200).json(events);

@@ -49,7 +49,6 @@ async function startServer() {
 
     const authenticateToken = (req: any, res: Response, next: NextFunction) => {
       const token = req.header("Authorization");
-      console.log(token);
       if (!token) {
         return next(new errors.UnauthorizedError("Access denied"));
       }
