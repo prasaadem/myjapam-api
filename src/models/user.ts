@@ -1,8 +1,8 @@
 // src/models/user.ts
-import mongoose, { Schema, Document } from 'mongoose';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
+import mongoose, { Schema, Document } from "mongoose";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -11,6 +11,7 @@ interface IUser extends Document {
   password: string;
   first_name: string;
   last_name: string;
+  is_admin: boolean;
   generateAuthToken: () => string;
 }
 
@@ -32,13 +33,17 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  is_admin: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-userSchema.pre<IUser>('save', async function (next) {
+userSchema.pre<IUser>("save", async function (next) {
   const user = this;
 
   // Hash the password only if it's modified or new
-  if (!user.isModified('password')) return next();
+  if (!user.isModified("password")) return next();
 
   try {
     const salt = await bcrypt.genSalt(10);
@@ -79,6 +84,6 @@ userSchema.statics.findByCredentials = async function (
   return user;
 };
 
-const User = mongoose.model<IUser>('User', userSchema);
+const User = mongoose.model<IUser>("User", userSchema);
 
 module.exports = { User };
