@@ -20,7 +20,7 @@ const router: Router = Router();
 router.post("/", upload.single("file"), createEvent);
 router.post("/public", getAllPublicEvents);
 router.post("/my", getMyEvents);
-router.put("/:id", upload.single("file"), updateEventById);
+router.put("/:code", upload.single("file"), updateEventById);
 router.get("/:id", getEventById);
 router.get("/byCode/:eventCode", getEventByCode);
 

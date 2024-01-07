@@ -168,7 +168,7 @@ export async function getEventByCode(
 }
 
 export async function updateEventById(req: any, res: Response): Promise<void> {
-  const eventId = req.params.id;
+  const code = req.params.code;
   const { title, subtitle, maxSubscriberCount, value, visibility } = req.body;
 
   try {
@@ -181,10 +181,16 @@ export async function updateEventById(req: any, res: Response): Promise<void> {
       url = await uploadToS3(file);
       data = { ...data, url: url };
     }
-    const updatedEvent = await Event.findByIdAndUpdate(eventId, data, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedEvent = await Event.findOneAndUpdate(
+      {
+        eventCode: code,
+      },
+      data,
+      {
+        upsert: true,
+        runValidators: true,
+      }
+    );
 
     if (updatedEvent) {
       res.status(200).json(updatedEvent);
@@ -199,13 +205,24 @@ export async function updateEventById(req: any, res: Response): Promise<void> {
 export async function deleteEventById(req: any, res: Response) {
   const eventId = req.params.id;
 
-  try {
-    const deletedEvent = await Event.findByIdAndDelete(eventId);
+  // Count the number of subscriptions for the event
+  const subscriptionCount = await Subscription.countDocuments({
+    event: eventId,
+  });
 
-    if (deletedEvent) {
-      res.json({ message: "Event deleted successfully" });
+  try {
+    if (subscriptionCount) {
+      res
+        .status(500)
+        .json({ message: "Can not delete japam, there are subscribers." });
     } else {
-      res.status(404).json({ message: "Event not found" });
+      const deletedEvent = await Event.findByIdAndDelete(eventId);
+
+      if (deletedEvent) {
+        res.json({ message: "Event deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Event not found" });
+      }
     }
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
