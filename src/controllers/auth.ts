@@ -4,6 +4,7 @@ const { User } = require("../models/user");
 import jwt from "jsonwebtoken";
 import errors from "restify-errors";
 import dotenv from "dotenv";
+import Terms from "../models/terms";
 
 export async function loginUser(req: Request, res: Response): Promise<void> {
   const { username, password } = req.body;
@@ -26,7 +27,7 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
 }
 
 export async function registerUser(req: Request, res: Response): Promise<void> {
-  const { username, password, first_name, last_name } = req.body;
+  const { username, password, first_name, last_name, version } = req.body;
 
   try {
     const existingUser = await User.findOne({ username });
@@ -37,6 +38,15 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       const newUser = new User({ username, password, first_name, last_name });
       await newUser.save();
       const token = newUser.generateAuthToken();
+
+      if (version) {
+        const newTerms = new Terms({
+          userId: newUser._id,
+          version: version,
+        });
+        await newTerms.save();
+      }
+
       res.json({
         token,
         user: newUser,
@@ -63,6 +73,39 @@ export async function updateUser(req: Request, res: Response): Promise<void> {
     } else {
       res.status(404).json({ message: "User not found" });
     }
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+}
+
+export async function updateTerms(req: Request, res: Response): Promise<void> {
+  const userId = req.params.id;
+  const { version } = req.body;
+
+  try {
+    const newTerms = new Terms({
+      userId: userId,
+      version: version,
+    });
+    await newTerms.save();
+
+    const terms = await Terms.find({ userId });
+
+    res.status(200).json(terms);
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+}
+
+export async function getTerms(req: Request, res: Response): Promise<void> {
+  const userId = req.params.id;
+
+  try {
+    const terms = await Terms.find({
+      userId: userId,
+    });
+
+    res.status(200).json(terms);
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
