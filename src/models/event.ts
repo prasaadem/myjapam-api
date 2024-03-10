@@ -1,5 +1,12 @@
 // src/models/event.ts
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
+
+interface IEventReport {
+  reportedBy: mongoose.Types.ObjectId;
+  message: string;
+  reportedOn: Date;
+  status: string;
+}
 
 interface IEvent extends Document {
   title: string;
@@ -12,6 +19,7 @@ interface IEvent extends Document {
   timestamp: Date;
   url: string;
   user_id: mongoose.Types.ObjectId;
+  reports: IEventReport[];
 }
 
 const eventSchema = new Schema({
@@ -43,8 +51,8 @@ const eventSchema = new Schema({
   visibility: {
     type: String,
     required: true,
-    enum: ['public', 'private', 'group'],
-    default: 'public',
+    enum: ["public", "private", "group"],
+    default: "public",
   },
   timestamp: {
     type: Date,
@@ -56,11 +64,32 @@ const eventSchema = new Schema({
   },
   user_id: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
+  reports: [
+    {
+      reportedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+      message: {
+        type: String,
+        required: true,
+      },
+      reportedOn: {
+        type: Date,
+        default: Date.now,
+      },
+      status: {
+        type: String,
+        enum: ["submitted", "in_progress", "resolved"],
+        default: "submitted",
+      },
+    },
+  ],
 });
 
-const Event = mongoose.model<IEvent>('Event', eventSchema);
+const Event = mongoose.model<IEvent>("Event", eventSchema);
 
 export default Event;

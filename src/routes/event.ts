@@ -7,6 +7,7 @@ import {
   getEventByCode,
   getEventById,
   getMyEvents,
+  reportEventByCode,
   updateEventById,
 } from "../controllers/event";
 
@@ -23,6 +24,8 @@ router.post("/my", getMyEvents);
 router.put("/:code", upload.single("file"), updateEventById);
 router.get("/:id", getEventById);
 router.get("/byCode/:eventCode", getEventByCode);
+
+router.put("/report/:code", reportEventByCode);
 
 router.delete("/:id", deleteEventById);
 

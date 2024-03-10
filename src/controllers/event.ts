@@ -202,6 +202,38 @@ export async function updateEventById(req: any, res: Response): Promise<void> {
   }
 }
 
+export async function reportEventByCode(
+  req: any,
+  res: Response
+): Promise<void> {
+  const code = req.params.code;
+  const { reportedBy, message } = req.body;
+
+  try {
+    let data: any = {
+      reportedBy,
+      message,
+      reportedOn: new Date().toISOString(),
+      status: "submitted",
+    };
+    console.log(data);
+    const updatedEvent = await Event.updateOne(
+      {
+        eventCode: code,
+      },
+      { $push: { reports: data } }
+    );
+    console.log(updatedEvent);
+    if (updatedEvent) {
+      res.status(200).json(updatedEvent);
+    } else {
+      res.status(404).json({ message: "Event not found" });
+    }
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+}
+
 export async function deleteEventById(req: any, res: Response) {
   const eventId = req.params.id;
 
