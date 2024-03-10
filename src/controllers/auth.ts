@@ -121,8 +121,6 @@ export const deleteUser = async (req: any, res: Response) => {
       });
     }
 
-    console.log(userId);
-
     const deletedUser = await User.findOneAndUpdate(
       {
         _id: userId,
