@@ -19,6 +19,6 @@ router.put("/:id", updateUser);
 router.get("/:id/terms", getTerms);
 router.post("/:id/terms", updateTerms);
 
-router.delete("/delete", deleteUser);
+router.post("/:id/delete", deleteUser);
 
 export default router;

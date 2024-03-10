@@ -13,6 +13,7 @@ interface IUser extends Document {
   last_name: string;
   is_admin: boolean;
   generateAuthToken: () => string;
+  tombstonedDate?: string;
 }
 
 const userSchema = new Schema({
@@ -36,6 +37,9 @@ const userSchema = new Schema({
   is_admin: {
     type: Boolean,
     default: false,
+  },
+  tombstonedDate: {
+    type: String,
   },
 });
 
@@ -69,7 +73,12 @@ userSchema.statics.findByCredentials = async function (
   username: string,
   password: string
 ): Promise<IUser | null> {
-  const user = await User.findOne({ username });
+  const user = await User.findOne({
+    username,
+    tombstonedDate: {
+      $exists: false,
+    },
+  });
 
   if (!user) {
     return null;

@@ -1,9 +1,7 @@
 // src/controllers/authController.ts
 import { Request, Response } from "express";
 const { User } = require("../models/user");
-import jwt from "jsonwebtoken";
-import errors from "restify-errors";
-import dotenv from "dotenv";
+
 import Terms from "../models/terms";
 
 export async function loginUser(req: Request, res: Response): Promise<void> {
@@ -114,18 +112,31 @@ export async function getTerms(req: Request, res: Response): Promise<void> {
 // Example deleteUser handler with authentication
 export const deleteUser = async (req: any, res: Response) => {
   try {
-    const userIdFromToken = req.user?.userId;
+    const userId = req.params.id;
 
-    if (!userIdFromToken) {
+    if (!userId) {
       return res.status(401).json({
         success: false,
         message: "Invalid or missing authentication token",
       });
     }
 
-    const deletedUser = await User.findByIdAndDelete({
-      _id: userIdFromToken,
-    });
+    console.log(userId);
+
+    const deletedUser = await User.findOneAndUpdate(
+      {
+        _id: userId,
+      },
+      {
+        $set: {
+          tombstonedDate: new Date().toISOString(),
+        },
+      },
+      {
+        upsert: false,
+        runValidators: true,
+      }
+    );
 
     if (!deletedUser) {
       return res
