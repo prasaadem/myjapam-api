@@ -223,7 +223,6 @@ export async function reportEventByCode(
       },
       { $push: { reports: data } }
     );
-    console.log(updatedEvent);
     if (updatedEvent) {
       res.status(200).json(updatedEvent);
     } else {
