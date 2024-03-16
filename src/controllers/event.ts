@@ -141,6 +141,17 @@ export async function getEventByCode(
           userDetails: { $arrayElemAt: ["$user", 0] },
         },
       },
+      {
+        $addFields: {
+          reports: {
+            $filter: {
+              input: "$reports",
+              as: "report",
+              cond: { $eq: ["$$report.status", "submitted"] },
+            },
+          },
+        },
+      },
     ]);
 
     if (events.length === 0) {
