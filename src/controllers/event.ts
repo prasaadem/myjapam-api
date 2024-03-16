@@ -4,6 +4,10 @@ import Event from "../models/event";
 import Subscription from "../models/subscription";
 import uploadToS3 from "../helpers/s3Uploader";
 import mongoose from "mongoose";
+import mailer from "../helpers/sesMailer";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export async function createEvent(req: any, res: Response): Promise<void> {
   const { title, subtitle, maxSubscriberCount, value, visibility, user_id } =
@@ -147,7 +151,12 @@ export async function getEventByCode(
             $filter: {
               input: "$reports",
               as: "report",
-              cond: { $eq: ["$$report.status", "submitted"] },
+              cond: {
+                $or: [
+                  { $eq: ["$$report.status", "submitted"] },
+                  { $eq: ["$$report.status", "accepted"] },
+                ],
+              },
             },
           },
         },
@@ -221,26 +230,64 @@ export async function reportEventByCode(
   const { reportedBy, message } = req.body;
 
   try {
-    let data: any = {
+    let reportData: any = {
       reportedBy,
       message,
       reportedOn: new Date().toISOString(),
       status: "submitted",
     };
-    console.log(data);
+
     const updatedEvent = await Event.updateOne(
       {
         eventCode: code,
       },
-      { $push: { reports: data } }
+      { $push: { reports: reportData } }
     );
+
     if (updatedEvent) {
+      await mailer.adminEmailNotify(
+        `New report: eventCode:${code}`,
+        `${process.env.APP_URL}/search/${code}`
+      );
       res.status(200).json(updatedEvent);
     } else {
       res.status(404).json({ message: "Event not found" });
     }
   } catch (error: any) {
     res.status(400).json({ message: error.message });
+  }
+}
+
+export async function updateEventReports(
+  req: any,
+  res: Response
+): Promise<void> {
+  const is_admin = req.user?.is_admin;
+
+  if (is_admin) {
+    const code = req.params.code;
+    const { reports } = req.body;
+
+    try {
+      const updatedEvent = await Event.updateOne(
+        {
+          eventCode: code,
+        },
+        { reports }
+      );
+
+      if (updatedEvent) {
+        res.status(200).json(updatedEvent);
+      } else {
+        res.status(404).json({ message: "Event not found" });
+      }
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  } else {
+    res
+      .status(401)
+      .json({ message: "You are unauthorized to update event reports" });
   }
 }
 

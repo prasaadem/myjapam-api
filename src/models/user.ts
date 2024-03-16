@@ -62,7 +62,7 @@ userSchema.pre<IUser>("save", async function (next) {
 userSchema.methods.generateAuthToken = function (): string {
   const user = this;
   const token = jwt.sign(
-    { userId: user._id },
+    { userId: user._id, is_admin: user.is_admin },
     process.env.SECRET_KEY as string,
     {}
   );

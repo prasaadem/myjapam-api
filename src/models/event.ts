@@ -83,7 +83,7 @@ const eventSchema = new Schema({
       },
       status: {
         type: String,
-        enum: ["submitted", "in_progress", "resolved"],
+        enum: ["submitted", "accepted", "resolved"],
         default: "submitted",
       },
     },

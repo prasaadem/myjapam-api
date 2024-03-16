@@ -9,6 +9,7 @@ import {
   getMyEvents,
   reportEventByCode,
   updateEventById,
+  updateEventReports,
 } from "../controllers/event";
 
 const multer = require("multer");
@@ -26,6 +27,7 @@ router.get("/:id", getEventById);
 router.get("/byCode/:eventCode", getEventByCode);
 
 router.put("/report/:code", reportEventByCode);
+router.put("/report/:code/update", updateEventReports);
 
 router.delete("/:id", deleteEventById);
 
