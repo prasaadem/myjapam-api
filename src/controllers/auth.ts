@@ -6,10 +6,8 @@ import Terms from "../models/terms";
 
 export async function loginUser(req: Request, res: Response): Promise<void> {
   const { username, password } = req.body;
-
   try {
     const user = await User.findByCredentials(username, password);
-
     if (user) {
       const token = user.generateAuthToken();
       res.json({
