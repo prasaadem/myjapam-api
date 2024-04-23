@@ -231,6 +231,17 @@ export async function reportEventByCode(
   const { reportedBy, message, blockedId } = req.body;
 
   try {
+    if (reportedBy !== blockedId) {
+      const block = new Block({
+        blocker_id: reportedBy,
+        blocked_id: blockedId,
+      });
+
+      await block.save();
+    } else {
+      res.status(400).json({ message: "You cannot report on your own Japam." });
+    }
+
     let reportData: any = {
       reportedBy,
       message,
@@ -244,13 +255,6 @@ export async function reportEventByCode(
       },
       { $push: { reports: reportData } }
     );
-
-    const block = new Block({
-      blocker_id: reportedBy,
-      blocked_id: blockedId,
-    });
-
-    await block.save();
 
     if (updatedEvent) {
       await mailer.adminEmailNotify(

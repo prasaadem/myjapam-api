@@ -24,6 +24,6 @@ const blockSchema = new Schema({
   },
 });
 
-const Event = mongoose.model<IBlock>("Event", blockSchema);
+const Block = mongoose.model<IBlock>("Block", blockSchema);
 
-export default Event;
+export default Block;
