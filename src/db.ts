@@ -1,6 +1,6 @@
 // src/db.ts
-import mongoose, { Connection } from 'mongoose';
-import dotenv from 'dotenv';
+import mongoose, { Connection } from "mongoose";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -12,12 +12,13 @@ let connection: any;
 export const connectToDatabase = async (): Promise<Connection> => {
   if (!connection) {
     try {
+      console.log("DATABASE_URL", DATABASE_URL);
       connection = await mongoose.connect(DATABASE_URL, {
         dbName: DATABASE_NAME,
       });
-      console.log('connected to database');
+      console.log("connected to database");
     } catch (error: any) {
-      console.error('Error connecting to the database:', error.message);
+      console.error("Error connecting to the database:", error.message);
       throw error;
     }
   }
@@ -27,7 +28,7 @@ export const connectToDatabase = async (): Promise<Connection> => {
 export const getDatabase = () => {
   if (!connection) {
     throw new Error(
-      'Must connect to the database before accessing collections'
+      "Must connect to the database before accessing collections"
     );
   }
   return connection.db;
