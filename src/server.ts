@@ -20,6 +20,7 @@ const whitelist = [
   "http://localhost:19006",
   "https://myjapam.com",
   "https://www.myjapam.com",
+  "https://staging.myjapam.com",
 ];
 
 const corsOptions = {
