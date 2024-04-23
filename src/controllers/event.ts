@@ -1,6 +1,7 @@
 // src/controllers/eventController.ts
 import { Request, Response } from "express";
 import Event from "../models/event";
+import Block from "../models/block";
 import Subscription from "../models/subscription";
 import uploadToS3 from "../helpers/s3Uploader";
 import mongoose from "mongoose";
@@ -227,7 +228,7 @@ export async function reportEventByCode(
   res: Response
 ): Promise<void> {
   const code = req.params.code;
-  const { reportedBy, message } = req.body;
+  const { reportedBy, message, blockedId } = req.body;
 
   try {
     let reportData: any = {
@@ -243,6 +244,13 @@ export async function reportEventByCode(
       },
       { $push: { reports: reportData } }
     );
+
+    const block = new Block({
+      blocker_id: reportedBy,
+      blocked_id: blockedId,
+    });
+
+    await block.save();
 
     if (updatedEvent) {
       await mailer.adminEmailNotify(
