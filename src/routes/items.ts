@@ -1,11 +1,10 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import errors from 'restify-errors';
-import Item from '../models/item';
+import { Router, Request, Response, NextFunction } from "express";
+import errors from "restify-errors";
+import Item from "../models/item";
 
 const router = Router();
 
-// Get all items
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const items = await Item.find();
     res.send(items);
@@ -14,8 +13,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// Create a new item
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const newItem = new Item(req.body);
     const savedItem = await newItem.save();
