@@ -56,14 +56,23 @@ export async function getMyEvents(req: any, res: Response): Promise<void> {
 }
 
 export async function getAllPublicEvents(
-  req: Request,
+  req: any,
   res: Response
 ): Promise<void> {
   try {
+    const requesterId = req.user?.userId;
+
+    // Fetch the list of user IDs that the requester has blocked
+    const blockedUsers = await Block.find({ blocker_id: requesterId }).select(
+      "blocked_id -_id"
+    );
+    const blockedUserIds = blockedUsers.map((block) => block.blocked_id);
+
     let query: any = [
       {
         $match: {
           visibility: "public",
+          userId: { $nin: blockedUserIds },
         },
       },
     ];
