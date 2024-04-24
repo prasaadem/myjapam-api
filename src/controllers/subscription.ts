@@ -4,6 +4,7 @@ import Subscription from "../models/subscription";
 import Event from "../models/event";
 import mongoose from "mongoose";
 import Log from "../models/log";
+import Badge from "../models/badge";
 
 export async function createSubscription(
   req: Request,
@@ -65,46 +66,26 @@ export async function getAllSubscriptions(
     if (userId) {
       query["user"] = new mongoose.Types.ObjectId(userId as string);
 
-      const subscriptions = await Subscription.aggregate([
-        {
-          $match: query,
-        },
-        {
-          $lookup: {
-            from: "events",
-            localField: "event",
-            foreignField: "_id",
-            as: "events",
-          },
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "user",
-            foreignField: "_id",
-            as: "users",
-          },
-        },
-        {
-          $lookup: {
-            from: "badges",
-            localField: "_id",
-            foreignField: "subscriptionId",
-            as: "badges",
-          },
-        },
-        {
-          $addFields: {
-            user: { $arrayElemAt: ["$users", 0] },
-          },
-        },
-        {
-          $addFields: {
-            event: { $arrayElemAt: ["$events", 0] },
-          },
-        },
-      ]);
-      res.status(200).json(subscriptions);
+      const subscriptions = await Subscription.find(query)
+        .populate("event")
+        .populate("user");
+
+      if (subscriptions.length === 0) {
+        res.status(200).json([]);
+      }
+
+      const subscriptionIds = subscriptions.map((sub) => sub._id);
+
+      const badges = await Badge.find({
+        subscriptionId: { $in: subscriptionIds },
+      });
+
+      const subscriptionsWithBadges = subscriptions.map((sub) => ({
+        ...sub.toObject(),
+        badges: badges.filter((badge) => badge.subscriptionId.equals(sub._id)),
+      }));
+
+      res.status(200).json(subscriptionsWithBadges);
     } else {
       res.status(200).json([]);
     }
