@@ -26,7 +26,7 @@ export function determineBadges(logCount: number): IBadgeInfo[] {
     badges.push({ name: "Dharma Writer Badge", type: "Novice" });
   if (logCount >= 100)
     badges.push({ name: "Devotee’s Dedication Badge", type: "Beginner" });
-  if (logCount < 100)
+  if (logCount >= 1)
     badges.push({ name: "Seeker’s Start Badge", type: "Starter" });
 
   return badges;
