@@ -63,11 +63,11 @@ export async function getAllSubscriptions(
 
     const query: any = {};
     if (userId) {
+      query["user"] = new mongoose.Types.ObjectId(userId as string);
+
       const subscriptions = await Subscription.aggregate([
         {
-          $match: {
-            user: userId,
-          },
+          $match: query,
         },
         {
           $lookup: {
