@@ -63,10 +63,47 @@ export async function getAllSubscriptions(
 
     const query: any = {};
     if (userId) {
-      query["user"] = new mongoose.Types.ObjectId(userId as string);
-      const subscriptions = await Subscription.find(query)
-        .populate("event")
-        .populate("user");
+      const subscriptions = await Subscription.aggregate([
+        {
+          $match: {
+            user: new mongoose.Types.ObjectId(userId as string),
+          },
+        },
+        {
+          $lookup: {
+            from: "events",
+            localField: "event",
+            foreignField: "_id",
+            as: "events",
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "user",
+            foreignField: "_id",
+            as: "users",
+          },
+        },
+        {
+          $lookup: {
+            from: "badges",
+            localField: "_id",
+            foreignField: "subscriptionId",
+            as: "badges",
+          },
+        },
+        {
+          $addFields: {
+            user: { $arrayElemAt: ["$users", 0] },
+          },
+        },
+        {
+          $addFields: {
+            event: { $arrayElemAt: ["$events", 0] },
+          },
+        },
+      ]);
       res.status(200).json(subscriptions);
     } else {
       res.status(200).json([]);

@@ -3,6 +3,8 @@ import { Request, Response } from "express";
 import Log from "../models/log";
 import mongoose from "mongoose";
 import Subscription from "../models/subscription";
+import { IBadgeInfo, determineBadges } from "./badge";
+import Badge from "../models/badge";
 const AWS = require("aws-sdk");
 
 export async function createLog(req: Request, res: Response): Promise<void> {
@@ -33,6 +35,36 @@ export async function createLog(req: Request, res: Response): Promise<void> {
       { sum: newLog.sum },
       { new: true }
     );
+
+    const badges: IBadgeInfo[] = determineBadges(newLog.sum);
+
+    const badgeReqs = badges.map((b: IBadgeInfo) =>
+      Badge.findOneAndUpdate(
+        {
+          userId,
+          subscriptionId: existingSubscription._id,
+          eventId,
+          badgeType: b.type, // Adding eventId ensures badge uniqueness per event
+        },
+        {
+          $setOnInsert: {
+            userId,
+            subscriptionId: existingSubscription._id,
+            eventId,
+          },
+          $set: {
+            badgeName: b.name,
+            badgeType: b.type,
+          },
+        },
+        {
+          new: true,
+          upsert: true,
+        }
+      )
+    );
+
+    const result = await Promise.all(badgeReqs);
 
     if (!updatedSubscription) {
       res.status(404).json({ error: "Subscription not found" });
@@ -78,6 +110,14 @@ export async function getAllLogs(req: Request, res: Response): Promise<void> {
         localField: "_id.user",
         foreignField: "_id",
         as: "users",
+      },
+    },
+    {
+      $lookup: {
+        from: "badges",
+        localField: "_id.event",
+        foreignField: "eventId",
+        as: "badges",
       },
     },
     {
