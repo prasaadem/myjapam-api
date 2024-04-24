@@ -66,7 +66,7 @@ export async function getAllSubscriptions(
       const subscriptions = await Subscription.aggregate([
         {
           $match: {
-            user: new mongoose.Types.ObjectId(userId as string),
+            user: userId,
           },
         },
         {
