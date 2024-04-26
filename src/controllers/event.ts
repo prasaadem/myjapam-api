@@ -62,9 +62,7 @@ export async function getAllPublicEvents(
   try {
     const requesterId = req.user?.userId;
 
-    const blockedUsers = await Block.find({ blocker_id: requesterId }).select(
-      "blocked_id -_id"
-    );
+    const blockedUsers = await Block.find({ blocker_id: requesterId });
 
     const blockedUserIds = blockedUsers.map((block) => block.blocked_id) || [];
 

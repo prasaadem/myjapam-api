@@ -70,10 +70,6 @@ export async function getAllSubscriptions(
         .populate("event")
         .populate("user");
 
-      if (subscriptions.length === 0) {
-        res.status(200).json([]);
-      }
-
       const subscriptionIds = subscriptions.map((sub) => sub._id);
 
       const badges = await Badge.find({
@@ -90,6 +86,7 @@ export async function getAllSubscriptions(
       res.status(200).json([]);
     }
   } catch (error: any) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 }
