@@ -26,7 +26,7 @@ export async function createEvent(req: any, res: Response): Promise<void> {
       title,
       subtitle,
       maxSubscriberCount,
-      value, // Assuming the initial count is 1
+      value,
       visibility,
       url,
       user_id,
@@ -66,7 +66,7 @@ export async function getAllPublicEvents(
       "blocked_id -_id"
     );
 
-    const blockedUserIds = blockedUsers.map((block) => block.blocked_id);
+    const blockedUserIds = blockedUsers.map((block) => block.blocked_id) || [];
 
     let query: any = [
       {

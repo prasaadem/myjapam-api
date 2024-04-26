@@ -34,7 +34,7 @@ const eventSchema = new Schema({
   maxSubscriberCount: {
     type: Number,
     min: 0,
-    max: 50,
+    max: 500,
     required: true,
   },
   eventCode: {
