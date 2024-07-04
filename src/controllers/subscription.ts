@@ -5,6 +5,7 @@ import Event from "../models/event";
 import mongoose from "mongoose";
 import Log from "../models/log";
 import Badge from "../models/badge";
+import { generatePDFsAndStreamZip } from "../helpers/pdfGenerator";
 
 export async function createSubscription(
   req: Request,
@@ -126,5 +127,40 @@ export async function updateAllSubscriptions(
   } catch (error) {
     console.error("Error updating subscriptions:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
+export async function downloadSubscription(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const subscriptionId = req.params.id;
+    const subscription = await Subscription.findById(subscriptionId);
+    const event = await Event.findById(subscription?.event);
+    if (!subscription || !event) {
+      res.status(404).send("Not found");
+      return;
+    }
+
+    const totalCount = event.value;
+    const progress = parseInt(`${subscription.sum}`);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=JapamProgress.pdf"
+    );
+
+    generatePDFsAndStreamZip(
+      totalCount,
+      progress,
+      event.title,
+      subscriptionId,
+      100000,
+      res
+    );
+  } catch (error) {
+    res.status(500).send("Error retrieving subscription");
   }
 }
