@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 const { User } = require("../models/user");
 
 import Terms from "../models/terms";
+import Session from "../models/session";
 
 export async function loginUser(req: Request, res: Response): Promise<void> {
   const { username, password } = req.body;
@@ -10,6 +11,14 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
     const user = await User.findByCredentials(username, password);
     if (user) {
       const token = user.generateAuthToken();
+
+      // Save the session to the database
+      const session = new Session({
+        userId: user._id,
+        token: token,
+      });
+      await session.save();
+
       res.json({
         token,
         user: user,
@@ -34,6 +43,13 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       const newUser = new User({ username, password, first_name, last_name });
       await newUser.save();
       const token = newUser.generateAuthToken();
+
+      // Save the session to the database
+      const session = new Session({
+        userId: newUser._id,
+        token: token,
+      });
+      await session.save();
 
       if (version) {
         const newTerms = new Terms({

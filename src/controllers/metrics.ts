@@ -3,6 +3,7 @@ const { User } = require("../models/user");
 import Event from "../models/event";
 import Subscription from "../models/subscription";
 import Log from "../models/log";
+import Session from "../models/session";
 
 // Get user metrics (total count and optionally filter by created date)
 export const getMetrics = async (req: any, res: Response) => {
@@ -48,6 +49,15 @@ export const getMetrics = async (req: any, res: Response) => {
         ((logCount / totalLogCount) * 100).toFixed(2)
       );
 
+      const sessionQuery: any = {
+        createdAt: { $gte: new Date(fromDate) },
+      };
+      let sessionCount = await Session.countDocuments(sessionQuery);
+      let totalSessionCount = await Session.countDocuments({});
+      const sessionPercentage = parseFloat(
+        ((sessionCount / totalSessionCount) * 100).toFixed(2)
+      );
+
       res.status(200).json({
         users: {
           total: totalCount,
@@ -68,6 +78,11 @@ export const getMetrics = async (req: any, res: Response) => {
           total: totalLogCount,
           lastWeek: logCount,
           percentage: logPercentage,
+        },
+        sessions: {
+          total: totalSessionCount,
+          lastWeek: sessionCount,
+          percentage: sessionPercentage,
         },
       });
     } catch (error) {
