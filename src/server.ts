@@ -7,6 +7,7 @@ import itemsRoutes from "./routes/items";
 import eventRoutes from "./routes/event";
 import subscriptionRoutes from "./routes/subscription";
 import userRoutes from "./routes/user";
+import metricsRoutes from "./routes/metrics";
 import logRoutes from "./routes/log";
 import dotenv from "dotenv";
 import { connectToDatabase } from "./db";
@@ -74,6 +75,7 @@ async function startServer() {
     app.use("/logs", authenticateToken, logRoutes);
     app.use("/subscriptions", authenticateToken, subscriptionRoutes);
     app.use("/users", authenticateToken, userRoutes);
+    app.use("/metrics", authenticateToken, metricsRoutes);
 
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);

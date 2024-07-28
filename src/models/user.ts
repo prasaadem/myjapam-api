@@ -14,6 +14,7 @@ interface IUser extends Document {
   is_admin: boolean;
   generateAuthToken: () => string;
   tombstonedDate?: string;
+  createdDate?: Date;
 }
 
 const userSchema = new Schema({
@@ -40,6 +41,10 @@ const userSchema = new Schema({
   },
   tombstonedDate: {
     type: String,
+  },
+  createdDate: {
+    type: Date,
+    default: Date.now,
   },
 });
 
