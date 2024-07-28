@@ -123,6 +123,7 @@ const updateUserMetrics = async (upperDate: Date, lowerDate: Date) => {
             event_id: "$event._id",
           },
           total_logs: { $sum: 1 },
+          logs: { $push: "$$ROOT" },
         },
       },
       // Step 7: Project desired fields
@@ -131,6 +132,7 @@ const updateUserMetrics = async (upperDate: Date, lowerDate: Date) => {
           user_id: "$_id.user_id",
           event_id: "$_id.event_id",
           total_logs: 1,
+          logs: 1,
         },
       },
     ];
@@ -143,6 +145,7 @@ const updateUserMetrics = async (upperDate: Date, lowerDate: Date) => {
         user_id: result.user_id,
         event_id: result.event_id,
         log_count: result.total_logs,
+        logs: result.logs,
         createdAt: upperDate,
       });
       return metric.save();

@@ -8,8 +8,8 @@ interface IMetrics extends Document {
   new_events?: number;
   new_subscriptions?: number;
   new_logs?: number;
-  user_id?: string;
-  event_id?: string;
+  user_id?: mongoose.Types.ObjectId;
+  event_id?: mongoose.Types.ObjectId;
   log_count?: number;
   createdAt: Date;
 }
@@ -93,7 +93,8 @@ const metricsSchema: Schema = new Schema({
     },
   },
   user_id: {
-    type: String,
+    type: Schema.Types.ObjectId,
+    ref: "User",
     validate: {
       validator: function (this: IMetrics) {
         return (
@@ -105,7 +106,8 @@ const metricsSchema: Schema = new Schema({
     },
   },
   event_id: {
-    type: String,
+    type: Schema.Types.ObjectId,
+    ref: "Event",
     validate: {
       validator: function (this: IMetrics) {
         return (
