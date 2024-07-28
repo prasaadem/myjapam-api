@@ -13,7 +13,7 @@ interface IUser extends Document {
   last_name: string;
   is_admin: boolean;
   generateAuthToken: () => string;
-  tombstonedDate?: string;
+  tombstonedDate?: Date;
   createdDate?: Date;
 }
 
@@ -40,7 +40,7 @@ const userSchema = new Schema({
     default: false,
   },
   tombstonedDate: {
-    type: String,
+    type: Date,
   },
   createdDate: {
     type: Date,

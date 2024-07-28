@@ -30,9 +30,7 @@ export const performNightlyTask = async (dateStr?: string) => {
 const updateAdminMetrics = async (upperDate: Date, lowerDate: Date) => {
   try {
     const tombstonedQuery = {
-      tombstonedDate: {
-        $exists: true,
-      },
+      tombstonedDate: { $gte: lowerDate, $lte: upperDate },
     };
 
     const userQuery: any = {
@@ -40,10 +38,7 @@ const updateAdminMetrics = async (upperDate: Date, lowerDate: Date) => {
     };
 
     const new_users = await User.countDocuments(userQuery);
-    const tombstoned_users = await User.countDocuments({
-      ...userQuery,
-      ...tombstonedQuery,
-    });
+    const tombstoned_users = await User.countDocuments(tombstonedQuery);
 
     const sessionQuery: any = {
       createdAt: { $gte: lowerDate, $lte: upperDate },
