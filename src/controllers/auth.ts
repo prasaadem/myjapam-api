@@ -1,9 +1,9 @@
 // src/controllers/authController.ts
 import { Request, Response } from "express";
-const { User } = require("../models/user");
 
 import Terms from "../models/terms";
 import Session from "../models/session";
+import User from "../models/user";
 
 export async function loginUser(req: Request, res: Response): Promise<void> {
   const { username, password } = req.body;
