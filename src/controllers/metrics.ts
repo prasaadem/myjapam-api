@@ -164,8 +164,8 @@ export const generateMetrics = async (req: any, res: Response) => {
     const { date } = req.body;
     const dates = getAllDatesFromStartDateUntilToday(date);
     for (const date of dates) {
-      // const dateString = date.toISOString().split("T")[0];
-      // await triggerNightlyTask(dateString);
+      const dateString = date.toISOString().split("T")[0];
+      await triggerNightlyTask(dateString);
     }
     res.status(200).send(`Nightly task triggered for: ${dates.length}`);
   } catch (e) {
