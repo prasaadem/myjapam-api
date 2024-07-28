@@ -7,7 +7,7 @@ cron.schedule("0 0 * * *", () => {
   performNightlyTask();
 });
 
-export const triggerNightlyTask = (date: string): void => {
+export const triggerNightlyTask = async (date: string) => {
   console.log("Running the nightly task immediately via endpoint");
-  performNightlyTask(date);
+  await performNightlyTask(date);
 };

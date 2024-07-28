@@ -146,8 +146,30 @@ export const getUserMetrics = async (req: any, res: Response) => {
   }
 };
 
+const getAllDatesFromStartDateUntilToday = (startDate: Date) => {
+  const dates = [];
+  const date = new Date(startDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to midnight to compare dates accurately
+
+  while (date <= today) {
+    dates.push(new Date(date));
+    date.setDate(date.getDate() + 1);
+  }
+  return dates;
+};
+
 export const generateMetrics = async (req: any, res: Response) => {
-  const { date } = req.body;
-  triggerNightlyTask(date);
-  res.status(200).send("Nightly task triggered");
+  try {
+    const { date } = req.body;
+    const dates = getAllDatesFromStartDateUntilToday(date);
+    for (const date of dates) {
+      const dateString = date.toISOString().split("T")[0];
+      await triggerNightlyTask(dateString);
+    }
+    res.status(200).send("Nightly task triggered");
+  } catch (e) {
+    console.log("Nightly error: ", e);
+    res.status(200).send("Nightly task failed");
+  }
 };

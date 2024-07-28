@@ -8,17 +8,20 @@ const { User } = require("../../models/user");
 
 export const performNightlyTask = async (dateStr?: string) => {
   try {
-    console.log("Nightly task: started");
+    console.log(`Nightly task started`);
 
     const upperDate = dateStr ? moment(dateStr).toDate() : moment().toDate();
 
     const loweDate = dateStr
       ? moment(dateStr).subtract(1, "days").toDate()
       : moment().subtract(1, "days").toDate();
+
+    console.log(`From: ${loweDate} to : ${upperDate} `);
+
     await updateAdminMetrics(upperDate, loweDate);
     await updateUserMetrics(upperDate, loweDate);
 
-    console.log("Nightly task: ended");
+    console.log(`Nightly task ended`);
   } catch (e: any) {
     console.log("Error running process", e.message);
   }
