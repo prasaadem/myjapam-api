@@ -4,7 +4,7 @@ import Event from "../../models/event";
 import Subscription from "../../models/subscription";
 import Log from "../../models/log";
 import Metrics from "../../models/metrics";
-import User from "../../models/user";
+const { User } = require("../../models/user");
 
 export const performNightlyTask = async (dateStr?: string) => {
   try {
