@@ -106,7 +106,7 @@ const updateUserMetrics = async (upperDate: Date, lowerDate: Date) => {
       {
         $lookup: {
           from: "users",
-          localField: "event.user_id",
+          localField: "user",
           foreignField: "_id",
           as: "user",
         },
