@@ -4,6 +4,7 @@ import Event from "../models/event";
 import Subscription from "../models/subscription";
 import Log from "../models/log";
 import Session from "../models/session";
+import { triggerNightlyTask } from "../processors/scheduler";
 
 // Get metrics (total count and optionally filter by created date)
 export const getMetrics = async (req: any, res: Response) => {
@@ -143,4 +144,10 @@ export const getUserMetrics = async (req: any, res: Response) => {
   } else {
     res.status(200).json({ totalCount: 0, useCount: 0 });
   }
+};
+
+export const generateMetrics = async (req: any, res: Response) => {
+  const { date } = req.body;
+  triggerNightlyTask(date);
+  res.status(200).send("Nightly task triggered");
 };

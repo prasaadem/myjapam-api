@@ -13,6 +13,8 @@ import dotenv from "dotenv";
 import { connectToDatabase } from "./db";
 import cors from "cors";
 
+import "./processors/scheduler";
+
 dotenv.config();
 
 // Define a whitelist of allowed origins
