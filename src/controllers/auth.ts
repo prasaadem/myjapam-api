@@ -15,6 +15,7 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
       // Save the session to the database
       const session = new Session({
         userId: user._id,
+        username: user.username,
         token: token,
       });
       await session.save();
@@ -47,6 +48,7 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
       // Save the session to the database
       const session = new Session({
         userId: newUser._id,
+        username: newUser.username,
         token: token,
       });
       await session.save();

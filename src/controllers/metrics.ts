@@ -5,17 +5,28 @@ import Subscription from "../models/subscription";
 import Log from "../models/log";
 import Session from "../models/session";
 
-// Get user metrics (total count and optionally filter by created date)
+// Get metrics (total count and optionally filter by created date)
 export const getMetrics = async (req: any, res: Response) => {
   const is_admin = req.user?.is_admin;
   if (is_admin) {
     const { fromDate } = req.body;
     try {
+      const tombstonedQuery = {
+        tombstonedDate: {
+          $exists: true,
+        },
+      };
       const userQuery: any = {
         createdDate: { $gte: new Date(fromDate) },
       };
       let userCount = await User.countDocuments(userQuery);
       let totalCount = await User.countDocuments({});
+
+      let lastWeekTombstoned = await User.countDocuments({
+        ...userQuery,
+        ...tombstonedQuery,
+      });
+      let totalTombstoned = await User.countDocuments(tombstonedQuery);
       const percentage = parseFloat(
         ((userCount / totalCount) * 100).toFixed(2)
       );
@@ -63,6 +74,8 @@ export const getMetrics = async (req: any, res: Response) => {
           total: totalCount,
           lastWeek: userCount,
           percentage: percentage,
+          totalTombstoned: totalTombstoned,
+          lastWeekTombstoned: lastWeekTombstoned,
         },
         events: {
           total: totalEventCount,
@@ -84,6 +97,44 @@ export const getMetrics = async (req: any, res: Response) => {
           lastWeek: sessionCount,
           percentage: sessionPercentage,
         },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: "Failed to get user metrics" });
+    }
+  } else {
+    res.status(200).json({ totalCount: 0, useCount: 0 });
+  }
+};
+
+// Get user metrics (total count and optionally filter by created date)
+export const getUserMetrics = async (req: any, res: Response) => {
+  const is_admin = req.user?.is_admin;
+  if (is_admin) {
+    const { fromDate, skip = 0, limit = 50 } = req.body;
+    try {
+      const tombstonedQuery = {
+        tombstonedDate: {
+          $exists: true,
+        },
+      };
+      const userQuery: any = {
+        createdDate: { $gte: new Date(fromDate) },
+      };
+      const lastWeekUsers = await User.find(userQuery);
+      let totalUsers = await User.find({}).skip(skip).limit(limit).exec();
+
+      let lastWeekTombstoned = await User.find({
+        ...userQuery,
+        ...tombstonedQuery,
+      });
+      let totalTombstoned = await User.find(tombstonedQuery);
+
+      res.status(200).json({
+        total: totalUsers,
+        lastWeek: lastWeekUsers,
+        totalTombstoned: totalTombstoned,
+        lastWeekTombstoned: lastWeekTombstoned,
       });
     } catch (error) {
       console.log(error);
