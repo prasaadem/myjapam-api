@@ -1,5 +1,5 @@
 // src/models/user.ts
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -17,11 +17,7 @@ interface IUser extends Document {
   createdDate?: Date;
 }
 
-interface IUserModel extends Model<IUser> {
-  findByCredentials(username: string, password: string): Promise<IUser | null>;
-}
-
-const userSchema = new Schema<IUser>({
+const userSchema = new Schema({
   username: {
     type: String,
     required: true,
@@ -69,7 +65,7 @@ userSchema.pre<IUser>("save", async function (next) {
 });
 
 userSchema.methods.generateAuthToken = function (): string {
-  const user = this as IUser;
+  const user = this;
   const token = jwt.sign(
     { userId: user._id, is_admin: user.is_admin },
     process.env.SECRET_KEY as string,
@@ -82,7 +78,7 @@ userSchema.statics.findByCredentials = async function (
   username: string,
   password: string
 ): Promise<IUser | null> {
-  const user = await this.findOne({
+  const user = await User.findOne({
     username,
     tombstonedDate: {
       $exists: false,
@@ -102,6 +98,6 @@ userSchema.statics.findByCredentials = async function (
   return user;
 };
 
-const User = mongoose.model<IUser, IUserModel>("User", userSchema);
+const User = mongoose.model<IUser>("User", userSchema);
 
 export default User;
