@@ -12,6 +12,7 @@ interface IMetrics extends Document {
   event_id?: mongoose.Types.ObjectId;
   log_count?: number;
   createdAt: Date;
+  logs?: Array<any>;
 }
 
 const metricsSchema: Schema = new Schema({
@@ -130,6 +131,11 @@ const metricsSchema: Schema = new Schema({
       message: "log_count is required for user type",
     },
   },
+  logs: [
+    {
+      type: mongoose.Schema.Types.Mixed, // or you can define a specific schema for logs
+    },
+  ],
   createdAt: {
     type: Date,
     required: true,
