@@ -162,12 +162,14 @@ const getAllDatesFromStartDateUntilToday = (startDate: Date) => {
 export const generateMetrics = async (req: any, res: Response) => {
   try {
     const { date } = req.body;
-    const dates = getAllDatesFromStartDateUntilToday(date);
-    for (const date of dates) {
-      const dateString = date.toISOString().split("T")[0];
-      await triggerNightlyTask(dateString);
-    }
-    res.status(200).send(`Nightly task triggered for: ${dates.length}`);
+    // const dates = getAllDatesFromStartDateUntilToday(date);
+    // for (const date of dates) {
+    //   const dateString = date.toISOString().split("T")[0];
+    //   await triggerNightlyTask(dateString);
+    // }
+
+    await triggerNightlyTask(date);
+    res.status(200).send(`Nightly task triggered for: ${date}`);
   } catch (e) {
     console.log("Nightly error: ", e);
     res.status(200).send("Nightly task failed");
