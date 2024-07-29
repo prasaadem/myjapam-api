@@ -4,7 +4,7 @@ import Event from "../../models/event";
 import Subscription from "../../models/subscription";
 import Log from "../../models/log";
 import Metrics from "../../models/metrics";
-const { User } = require("../../models/user");
+import User from "../../models/user";
 
 export const performNightlyTask = async (dateStr?: string) => {
   try {
@@ -33,11 +33,23 @@ const updateAdminMetrics = async (upperDate: Date, lowerDate: Date) => {
       tombstonedDate: { $gte: lowerDate, $lte: upperDate },
     };
 
-    const userQuery: any = {
+    if (!(lowerDate instanceof Date) || !(upperDate instanceof Date)) {
+      throw new Error("Invalid date format");
+    }
+
+    const userQuery = {
       createdDate: { $gte: lowerDate, $lte: upperDate },
     };
 
+    // Log the query and dates for debugging
+    console.log("User Query:", userQuery);
+    console.log("Lower Date:", lowerDate);
+    console.log("Upper Date:", upperDate);
+
     const new_users = await User.countDocuments(userQuery);
+
+    console.log("New Users:", new_users);
+
     const tombstoned_users = await User.countDocuments(tombstonedQuery);
 
     const sessionQuery: any = {

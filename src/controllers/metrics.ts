@@ -1,11 +1,11 @@
 import { Response } from "express";
-const { User } = require("../models/user");
 import Event from "../models/event";
 import Subscription from "../models/subscription";
 import Log from "../models/log";
 import Session from "../models/session";
 import { triggerNightlyTask } from "../processors/scheduler";
 import moment from "moment";
+import User from "../models/user";
 
 // Get metrics (total count and optionally filter by created date)
 export const getMetrics = async (req: any, res: Response) => {
