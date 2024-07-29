@@ -12,14 +12,14 @@ export const performNightlyTask = async (dateStr?: string) => {
 
     const upperDate = dateStr ? moment(dateStr).toDate() : moment().toDate();
 
-    const loweDate = dateStr
+    const lowerDate = dateStr
       ? moment(dateStr).subtract(1, "days").toDate()
       : moment().subtract(1, "days").toDate();
 
-    console.log(`From: ${loweDate} to : ${upperDate} `);
+    console.log(`From: ${lowerDate} to : ${upperDate} `);
 
-    await updateAdminMetrics(upperDate, loweDate);
-    await updateUserMetrics(upperDate, loweDate);
+    await updateAdminMetrics(upperDate, lowerDate);
+    await updateUserMetrics(upperDate, lowerDate);
 
     console.log(`Nightly task ended`);
   } catch (e: any) {

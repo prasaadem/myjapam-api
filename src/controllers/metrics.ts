@@ -5,6 +5,7 @@ import Subscription from "../models/subscription";
 import Log from "../models/log";
 import Session from "../models/session";
 import { triggerNightlyTask } from "../processors/scheduler";
+import moment from "moment";
 
 // Get metrics (total count and optionally filter by created date)
 export const getMetrics = async (req: any, res: Response) => {
@@ -146,30 +147,35 @@ export const getUserMetrics = async (req: any, res: Response) => {
   }
 };
 
-const getAllDatesFromStartDateUntilToday = (startDate: Date) => {
-  const dates = [];
-  const date = new Date(startDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Set to midnight to compare dates accurately
-
-  while (date <= today) {
-    dates.push(new Date(date));
-    date.setDate(date.getDate() + 1);
-  }
-  return dates;
-};
-
 export const generateMetrics = async (req: any, res: Response) => {
   try {
     const { date } = req.body;
-    // const dates = getAllDatesFromStartDateUntilToday(date);
-    // for (const date of dates) {
-    //   const dateString = date.toISOString().split("T")[0];
-    //   await triggerNightlyTask(dateString);
-    // }
+
+    const upperDate = date ? moment(date).toDate() : moment().toDate();
+
+    const lowerDate = date
+      ? moment(date).subtract(1, "days").toDate()
+      : moment().subtract(1, "days").toDate();
+
+    const tombstonedQuery = {
+      tombstonedDate: { $gte: lowerDate, $lte: upperDate },
+    };
+
+    const userQuery: any = {
+      createdDate: { $gte: lowerDate, $lte: upperDate },
+    };
+
+    const new_users = await User.countDocuments(userQuery);
+    const tombstoned_users = await User.countDocuments(tombstonedQuery);
 
     await triggerNightlyTask(date);
-    res.status(200).send(`Nightly task triggered for: ${date}`);
+    res.status(200).send({
+      message: `Nightly task triggered for: ${date}`,
+      lowerDate,
+      upperDate,
+      new_users,
+      tombstoned_users,
+    });
   } catch (e) {
     console.log("Nightly error: ", e);
     res.status(200).send("Nightly task failed");
