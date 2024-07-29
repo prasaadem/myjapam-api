@@ -6,6 +6,7 @@ import Session from "../models/session";
 import { triggerNightlyTask } from "../processors/scheduler";
 import moment from "moment";
 import User from "../models/user";
+import Metrics from "../models/metrics";
 
 // Get metrics (total count and optionally filter by created date)
 export const getMetrics = async (req: any, res: Response) => {
@@ -176,6 +177,33 @@ export const generateMetrics = async (req: any, res: Response) => {
       new_users,
       tombstoned_users,
     });
+  } catch (e) {
+    console.log("Nightly error: ", e);
+    res.status(200).send("Nightly task failed");
+  }
+};
+
+export const userLogs = async (req: any, res: Response) => {
+  try {
+    const requesterId = req.user?.userId;
+    const { eventId, startDate, endDate } = req.body;
+
+    const upperDate = endDate ? moment(endDate).toDate() : moment().toDate();
+
+    const lowerDate = startDate
+      ? moment(startDate).toDate()
+      : moment().toDate();
+
+    const metricsQuery = {
+      type: "user",
+      event_id: eventId,
+      user_id: requesterId,
+      createdAt: { $gte: lowerDate, $lte: upperDate },
+    };
+
+    const logMetrics = await Metrics.find(metricsQuery).sort({ createdAt: 1 });
+
+    res.status(200).send(logMetrics);
   } catch (e) {
     console.log("Nightly error: ", e);
     res.status(200).send("Nightly task failed");
