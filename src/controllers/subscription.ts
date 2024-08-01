@@ -69,7 +69,8 @@ export async function getAllSubscriptions(
 
       const subscriptions = await Subscription.find(query)
         .populate("event")
-        .populate("user");
+        .populate("user")
+        .sort({ subscription_date: -1 });
 
       const subscriptionIds = subscriptions.map((sub) => sub._id);
 

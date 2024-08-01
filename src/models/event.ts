@@ -18,6 +18,7 @@ interface IEvent extends Document {
   visibility: string;
   timestamp: Date;
   url: string;
+  audio: string;
   user_id: mongoose.Types.ObjectId;
   reports: IEventReport[];
 }
@@ -61,6 +62,9 @@ const eventSchema = new Schema({
   url: {
     type: String,
     required: true,
+  },
+  audio: {
+    type: String,
   },
   user_id: {
     type: Schema.Types.ObjectId,

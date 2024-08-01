@@ -46,6 +46,11 @@ export async function getMyEvents(req: any, res: Response): Promise<void> {
       {
         $match: { user_id: new mongoose.Types.ObjectId(userId as string) },
       },
+      {
+        $sort: {
+          timestamp: -1,
+        },
+      },
     ];
 
     const events = await Event.aggregate(query);
@@ -71,6 +76,11 @@ export async function getAllPublicEvents(
         $match: {
           visibility: "public",
           user_id: { $nin: blockedUserIds },
+        },
+      },
+      {
+        $sort: {
+          timestamp: -1,
         },
       },
     ];
