@@ -5,6 +5,7 @@ import Subscription from "../../models/subscription";
 import Log from "../../models/log";
 import Metrics from "../../models/metrics";
 import User from "../../models/user";
+import mailer from "../../helpers/sesMailer";
 
 export const performNightlyTask = async (dateStr?: string) => {
   try {
@@ -48,8 +49,6 @@ const updateAdminMetrics = async (upperDate: Date, lowerDate: Date) => {
 
     const new_users = await User.countDocuments(userQuery);
 
-    console.log("New Users:", new_users);
-
     const tombstoned_users = await User.countDocuments(tombstonedQuery);
 
     const sessionQuery: any = {
@@ -74,7 +73,7 @@ const updateAdminMetrics = async (upperDate: Date, lowerDate: Date) => {
     };
     let new_logs = await Log.countDocuments(logQuery);
 
-    const metrics = new Metrics({
+    const response = {
       type: "admin",
       new_users,
       tombstoned_users,
@@ -83,8 +82,15 @@ const updateAdminMetrics = async (upperDate: Date, lowerDate: Date) => {
       new_subscriptions,
       new_logs,
       createdAt: upperDate,
-    });
+    };
+
+    const metrics = new Metrics(response);
     await metrics.save();
+
+    await mailer.adminEmailNotify(
+      `Ran Nightly task for admin: ${upperDate}`,
+      JSON.stringify(response)
+    );
   } catch (e: any) {
     console.log("Error with admin metrics", e.message);
   }
