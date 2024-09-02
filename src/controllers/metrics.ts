@@ -124,8 +124,14 @@ export const getUserMetrics = async (req: any, res: Response) => {
       const userQuery: any = {
         createdDate: { $gte: new Date(fromDate) },
       };
-      const lastWeekUsers = await User.find(userQuery);
-      let totalUsers = await User.find({}).skip(skip).limit(limit).exec();
+      const lastWeekUsers = await User.find(userQuery)
+        .sort({ createdDate: -1 })
+        .exec();
+      let totalUsers = await User.find({})
+        .sort({ createdDate: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec();
 
       let lastWeekTombstoned = await User.find({
         ...userQuery,
@@ -157,8 +163,14 @@ export const getSessionMetrics = async (req: any, res: Response) => {
       const sessionQuery: any = {
         createdDate: { $gte: new Date(fromDate) },
       };
-      const lastWeekSessions = await Session.find(sessionQuery);
-      let totalSessions = await Session.find({}).skip(skip).limit(limit).exec();
+      const lastWeekSessions = await Session.find(sessionQuery)
+        .sort({ createdDate: -1 })
+        .exec();
+      let totalSessions = await Session.find({})
+        .sort({ createdDate: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec();
 
       res.status(200).json({
         total: totalSessions,
@@ -182,8 +194,14 @@ export const getEventMetrics = async (req: any, res: Response) => {
       const eventQuery: any = {
         timestamp: { $gte: new Date(fromDate) },
       };
-      const lastWeekEvents = await Event.find(eventQuery);
-      let totalEventCount = await Event.find({}).skip(skip).limit(limit).exec();
+      const lastWeekEvents = await Event.find(eventQuery)
+        .sort({ timestamp: -1 })
+        .exec();
+      let totalEventCount = await Event.find({})
+        .sort({ timestamp: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec();
 
       res.status(200).json({
         total: totalEventCount,
@@ -210,10 +228,12 @@ export const getSubscriptionMetrics = async (req: any, res: Response) => {
       const lastWeekSubscriptions = await Subscription.find(subscriptionQuery)
         .populate("user")
         .populate("event")
+        .sort({ subscription_date: -1 })
         .exec();
       let totalSubscriptionCount = await Subscription.find({})
         .populate("user")
         .populate("event")
+        .sort({ subscription_date: -1 })
         .skip(skip)
         .limit(limit)
         .exec();
@@ -243,10 +263,12 @@ export const getLogMetrics = async (req: any, res: Response) => {
       const lastWeekSubscriptions = await Log.find(logQuery)
         .populate("user")
         .populate("event")
+        .sort({ timestamp: -1 })
         .exec();
       let totalSubscriptionCount = await Log.find({})
         .populate("user")
         .populate("event")
+        .sort({ timestamp: -1 })
         .skip(skip)
         .limit(limit)
         .exec();
