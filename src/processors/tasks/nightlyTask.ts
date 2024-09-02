@@ -89,11 +89,26 @@ const updateAdminMetrics = async (upperDate: Date, lowerDate: Date) => {
 
     await mailer.adminEmailNotify(
       `Ran Nightly task for admin: ${upperDate}`,
-      JSON.stringify(response)
+      formatUserActivitySummary(response)
     );
   } catch (e: any) {
     console.log("Error with admin metrics", e.message);
   }
+};
+
+const formatUserActivitySummary = (response: any) => {
+  return `
+    User Activity Summary:
+
+    Type: ${response.type}
+    New Users: ${response.new_users}
+    Tombstoned Users: ${response.tombstoned_users}
+    New Sessions: ${response.new_sessions}
+    New Events: ${response.new_events}
+    New Subscriptions: ${response.new_subscriptions}
+    New Logs: ${response.new_logs}
+    Created At: ${response.createdAt}
+    `;
 };
 
 const updateUserMetrics = async (upperDate: Date, lowerDate: Date) => {
