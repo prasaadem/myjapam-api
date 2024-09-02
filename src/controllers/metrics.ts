@@ -148,6 +148,122 @@ export const getUserMetrics = async (req: any, res: Response) => {
   }
 };
 
+// Get session metrics (total count and optionally filter by created date)
+export const getSessionMetrics = async (req: any, res: Response) => {
+  const is_admin = req.user?.is_admin;
+  if (is_admin) {
+    const { fromDate, skip = 0, limit = 50 } = req.body;
+    try {
+      const sessionQuery: any = {
+        createdDate: { $gte: new Date(fromDate) },
+      };
+      const lastWeekSessions = await Session.find(sessionQuery);
+      let totalSessions = await Session.find({}).skip(skip).limit(limit).exec();
+
+      res.status(200).json({
+        total: totalSessions,
+        lastWeek: lastWeekSessions,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: "Failed to get session metrics" });
+    }
+  } else {
+    res.status(200).json({ totalCount: 0, useCount: 0 });
+  }
+};
+
+// Get event metrics (total count and optionally filter by created date)
+export const getEventMetrics = async (req: any, res: Response) => {
+  const is_admin = req.user?.is_admin;
+  if (is_admin) {
+    const { fromDate, skip = 0, limit = 50 } = req.body;
+    try {
+      const eventQuery: any = {
+        timestamp: { $gte: new Date(fromDate) },
+      };
+      const lastWeekEvents = await Event.find(eventQuery);
+      let totalEventCount = await Event.find({}).skip(skip).limit(limit).exec();
+
+      res.status(200).json({
+        total: totalEventCount,
+        lastWeek: lastWeekEvents,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: "Failed to get event metrics" });
+    }
+  } else {
+    res.status(200).json({ totalCount: 0, useCount: 0 });
+  }
+};
+
+// Get subscription metrics (total count and optionally filter by created date)
+export const getSubscriptionMetrics = async (req: any, res: Response) => {
+  const is_admin = req.user?.is_admin;
+  if (is_admin) {
+    const { fromDate, skip = 0, limit = 50 } = req.body;
+    try {
+      const subscriptionQuery: any = {
+        subscription_date: { $gte: new Date(fromDate) },
+      };
+      const lastWeekSubscriptions = await Subscription.find(subscriptionQuery)
+        .populate("user")
+        .populate("event")
+        .exec();
+      let totalSubscriptionCount = await Subscription.find({})
+        .populate("user")
+        .populate("event")
+        .skip(skip)
+        .limit(limit)
+        .exec();
+
+      res.status(200).json({
+        total: totalSubscriptionCount,
+        lastWeek: lastWeekSubscriptions,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: "Failed to get event metrics" });
+    }
+  } else {
+    res.status(200).json({ totalCount: 0, useCount: 0 });
+  }
+};
+
+// Get subscription metrics (total count and optionally filter by created date)
+export const getLogMetrics = async (req: any, res: Response) => {
+  const is_admin = req.user?.is_admin;
+  if (is_admin) {
+    const { fromDate, skip = 0, limit = 50 } = req.body;
+    try {
+      const logQuery: any = {
+        timestamp: { $gte: new Date(fromDate) },
+      };
+      const lastWeekSubscriptions = await Log.find(logQuery)
+        .populate("user")
+        .populate("event")
+        .exec();
+      let totalSubscriptionCount = await Log.find({})
+        .populate("user")
+        .populate("event")
+        .skip(skip)
+        .limit(limit)
+        .exec();
+
+      res.status(200).json({
+        total: totalSubscriptionCount,
+        lastWeek: lastWeekSubscriptions,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: "Failed to get event metrics" });
+    }
+  } else {
+    res.status(200).json({ totalCount: 0, useCount: 0 });
+  }
+};
+
 export const generateMetrics = async (req: any, res: Response) => {
   try {
     const { date } = req.body;
