@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 
 const sendEmail = (toEmail: string[], subject: string, body: string) => {
   return transporter.sendMail({
-    from: "aditya@myjapam.com",
+    from: "prasaadem@gmail.com",
     to: toEmail,
     subject: subject,
     text: body,
@@ -26,7 +26,7 @@ const sendEmail = (toEmail: string[], subject: string, body: string) => {
 };
 
 const adminEmailNotify = (subject: string, body: string) => {
-  const adminEmails = ["aditya@myjapam.com", "praveen@myjapam.com"];
+  const adminEmails = ["prasaadem@gmail.com", "praveensssvv@gmail.com"];
   return sendEmail(adminEmails, subject, body);
 };
 
