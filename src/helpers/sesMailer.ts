@@ -26,7 +26,7 @@ const sendEmail = (toEmail: string[], subject: string, body: string) => {
 };
 
 const adminEmailNotify = (subject: string, body: string) => {
-  const adminEmails = ["prasaadem@gmail.com", "praveensssvv@gmail.com"];
+  const adminEmails = ["prasaadem@gmail.com"];
   return sendEmail(adminEmails, subject, body);
 };
 
