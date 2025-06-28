@@ -80,7 +80,7 @@ export async function getAllPublicEvents(
       },
       {
         $sort: {
-          timestamp: -1,
+          timestamp: 1,
         },
       },
     ];
