@@ -78,11 +78,28 @@ export async function getFeedbackHistory(
       return;
     }
 
-    const feedbacks = await Feedback.find({ user: userId })
-      .sort({ timestamp: -1 })
-      .select("type subject message status timestamp");
+    // Pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
 
-    res.status(200).json(feedbacks);
+    const [feedbacks, total] = await Promise.all([
+      Feedback.find({ user: userId })
+        .sort({ timestamp: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select("type subject message status timestamp"),
+      Feedback.countDocuments({ user: userId }),
+    ]);
+
+    res.status(200).json({
+      feedbacks,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasMore: page < Math.ceil(total / limit),
+    });
   } catch (error: any) {
     console.error("Get feedback history error:", error);
     res.status(500).json({ message: "Failed to retrieve feedback history" });
@@ -107,12 +124,29 @@ export async function getAllFeedback(
       return;
     }
 
-    const feedbacks = await Feedback.find()
-      .populate("user", "username first_name last_name")
-      .sort({ timestamp: -1 })
-      .select("user type subject message status timestamp");
+    // Pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const skip = (page - 1) * limit;
 
-    res.status(200).json(feedbacks);
+    const [feedbacks, total] = await Promise.all([
+      Feedback.find()
+        .populate("user", "username first_name last_name")
+        .sort({ timestamp: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select("user type subject message status timestamp"),
+      Feedback.countDocuments(),
+    ]);
+
+    res.status(200).json({
+      feedbacks,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasMore: page < Math.ceil(total / limit),
+    });
   } catch (error: any) {
     console.error("Get all feedback error:", error);
     res.status(500).json({ message: "Failed to retrieve feedback" });
