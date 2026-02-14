@@ -8,6 +8,7 @@ import {
   getEventById,
   getMyEvents,
   reportEventByCode,
+  searchEvents,
   updateEventById,
   updateEventReports,
 } from "../controllers/event";
@@ -22,6 +23,7 @@ const router: Router = Router();
 router.post("/", upload.single("file"), createEvent);
 router.post("/public", getAllPublicEvents);
 router.post("/my", getMyEvents);
+router.post("/search", searchEvents);
 router.put("/:code", upload.single("file"), updateEventById);
 router.get("/:id", getEventById);
 router.get("/byCode/:eventCode", getEventByCode);

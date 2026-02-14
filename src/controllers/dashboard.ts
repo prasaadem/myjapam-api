@@ -77,7 +77,7 @@ export async function getDashboard(req: any, res: Response): Promise<void> {
       // Check if user logged today or yesterday to start the streak
       const mostRecentLogDate = new Date(dailyLogs[0]._id + "T00:00:00");
       const diffFromToday = Math.floor(
-        (today.getTime() - mostRecentLogDate.getTime()) / (1000 * 60 * 60 * 24)
+        (today.getTime() - mostRecentLogDate.getTime()) / (1000 * 60 * 60 * 24),
       );
 
       // Streak only counts if last log was today or yesterday
@@ -108,7 +108,7 @@ export async function getDashboard(req: any, res: Response): Promise<void> {
     const recentActivity = recentLogs.map((log: any) => {
       // Find the subscription for this log's event
       const sub = subscriptions.find(
-        (s: any) => s.event._id.toString() === log.event._id.toString()
+        (s: any) => s.event._id.toString() === log.event._id.toString(),
       );
       return {
         eventTitle: log.event?.title || "",
@@ -173,7 +173,9 @@ export async function getDashboard(req: any, res: Response): Promise<void> {
           progressPercent: progress,
         };
       })
-      .filter((item) => item.progressPercent >= 80 && item.progressPercent < 100);
+      .filter(
+        (item) => item.progressPercent >= 80 && item.progressPercent < 100,
+      );
 
     // 9. Build greeting
     const now = new Date();

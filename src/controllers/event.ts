@@ -62,7 +62,7 @@ export async function getMyEvents(req: any, res: Response): Promise<void> {
 
 export async function getAllPublicEvents(
   req: any,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
     const requesterId = req.user?.userId;
@@ -141,7 +141,7 @@ export async function getEventById(req: Request, res: Response): Promise<void> {
 
 export async function getEventByCode(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   const eventCode = req.params.eventCode;
 
@@ -227,7 +227,7 @@ export async function updateEventById(req: any, res: Response): Promise<void> {
       {
         upsert: true,
         runValidators: true,
-      }
+      },
     );
 
     if (updatedEvent) {
@@ -242,7 +242,7 @@ export async function updateEventById(req: any, res: Response): Promise<void> {
 
 export async function reportEventByCode(
   req: any,
-  res: Response
+  res: Response,
 ): Promise<void> {
   const code = req.params.code;
   const { reportedBy, message, blockedId } = req.body;
@@ -270,13 +270,13 @@ export async function reportEventByCode(
       {
         eventCode: code,
       },
-      { $push: { reports: reportData } }
+      { $push: { reports: reportData } },
     );
 
     if (updatedEvent) {
       await mailer.adminEmailNotify(
         `New report: eventCode:${code}`,
-        `${process.env.APP_URL}/search/${code}`
+        `${process.env.APP_URL}/search/${code}`,
       );
       res.status(200).json(updatedEvent);
     } else {
@@ -289,7 +289,7 @@ export async function reportEventByCode(
 
 export async function updateEventReports(
   req: any,
-  res: Response
+  res: Response,
 ): Promise<void> {
   const is_admin = req.user?.is_admin;
 
@@ -302,7 +302,7 @@ export async function updateEventReports(
         {
           eventCode: code,
         },
-        { reports }
+        { reports },
       );
 
       if (updatedEvent) {
@@ -344,5 +344,120 @@ export async function deleteEventById(req: any, res: Response) {
     }
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export async function searchEvents(req: any, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(400).json({ message: "User not authenticated" });
+      return;
+    }
+
+    const { query, scope = "public", subscriptionFilter = "all" } = req.body;
+
+    const userObjectId = new mongoose.Types.ObjectId(userId as string);
+
+    // Get blocked user IDs
+    const blockedUsers = await Block.find({ blocker_id: userId });
+    const blockedUserIds = blockedUsers.map((block) => block.blocked_id) || [];
+
+    // Build base match
+    const matchConditions: any = {};
+
+    if (scope === "public") {
+      matchConditions.visibility = "public";
+      matchConditions.user_id = { $nin: blockedUserIds };
+    } else {
+      // "my" — user's own events
+      matchConditions.user_id = userObjectId;
+    }
+
+    // Exclude events reported by this user (non-resolved reports)
+    if (scope === "public") {
+      matchConditions["reports"] = {
+        $not: {
+          $elemMatch: {
+            reportedBy: userObjectId,
+            status: { $ne: "resolved" },
+          },
+        },
+      };
+    }
+
+    // Add text search if query provided
+    if (query && query.trim()) {
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      matchConditions.$or = [
+        { title: { $regex: escapedQuery, $options: "i" } },
+        { subtitle: { $regex: escapedQuery, $options: "i" } },
+        { eventCode: { $regex: escapedQuery, $options: "i" } },
+      ];
+    }
+
+    // Build aggregation pipeline
+    const pipeline: any[] = [
+      { $match: matchConditions },
+      { $sort: { timestamp: -1 } },
+      // Lookup user's subscription for each event
+      {
+        $lookup: {
+          from: "subscriptions",
+          let: { eventId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$event", "$$eventId"] },
+                    { $eq: ["$user", userObjectId] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "_subscriptions",
+        },
+      },
+      {
+        $addFields: {
+          subscription: {
+            $cond: {
+              if: { $gt: [{ $size: "$_subscriptions" }, 0] },
+              then: {
+                _id: { $arrayElemAt: ["$_subscriptions._id", 0] },
+                sum: { $arrayElemAt: ["$_subscriptions.sum", 0] },
+                subscription_date: {
+                  $arrayElemAt: ["$_subscriptions.subscription_date", 0],
+                },
+              },
+              else: null,
+            },
+          },
+        },
+      },
+    ];
+
+    // Apply subscription filter
+    if (subscriptionFilter === "subscribed") {
+      pipeline.push({ $match: { subscription: { $ne: null } } });
+    } else if (subscriptionFilter === "not_subscribed") {
+      pipeline.push({ $match: { subscription: null } });
+    }
+
+    // Clean up: remove internal fields
+    pipeline.push({
+      $project: {
+        _subscriptions: 0,
+        reports: 0,
+      },
+    });
+
+    const results = await Event.aggregate(pipeline);
+    res.status(200).json(results);
+  } catch (error: any) {
+    console.error("Search events error:", error);
+    res.status(500).json({ message: "Failed to search events" });
   }
 }

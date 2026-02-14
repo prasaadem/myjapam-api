@@ -30,7 +30,7 @@ const whitelist = [
 const corsOptions = {
   origin: (
     origin: string | undefined,
-    callback: (err: Error | null, allow?: boolean) => void
+    callback: (err: Error | null, allow?: boolean) => void,
   ) => {
     // Allow requests from the whitelist, and allow requests with no origin (e.g., same-origin requests)
     if (!origin || whitelist.includes(origin)) {
@@ -67,7 +67,7 @@ async function startServer() {
           }
           req.user = user;
           next();
-        }
+        },
       );
     };
 
