@@ -9,7 +9,7 @@ import { generatePDFsAndStreamZip } from "../helpers/pdfGenerator";
 
 export async function createSubscription(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   const { eventId, userId } = req.body;
 
@@ -34,15 +34,6 @@ export async function createSubscription(
       return;
     }
 
-    // Check if the event has reached its maximum subscriber count
-    const existingSubscriptions = await Subscription.find({ event: eventId });
-    if (existingSubscriptions.length >= event.maxSubscriberCount) {
-      res
-        .status(400)
-        .json({ message: "Event has reached the maximum subscriber count" });
-      return;
-    }
-
     // Create a new subscription
     const newSubscription = new Subscription({
       event: eventId,
@@ -58,7 +49,7 @@ export async function createSubscription(
 
 export async function getAllSubscriptions(
   req: any,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
     const userId = req.user?.userId;
@@ -95,7 +86,7 @@ export async function getAllSubscriptions(
 
 export async function updateAllSubscriptions(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
     // Find the log with the highest sum for each user and event
@@ -116,7 +107,7 @@ export async function updateAllSubscriptions(
       const updatedSubscription = await Subscription.findOneAndUpdate(
         { user: userId, event: eventId },
         { sum: maxSum },
-        { new: true }
+        { new: true },
       );
 
       return updatedSubscription;
@@ -133,7 +124,7 @@ export async function updateAllSubscriptions(
 
 export async function downloadSubscription(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
     const subscriptionId = req.params.id;
@@ -150,7 +141,7 @@ export async function downloadSubscription(
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      "attachment; filename=JapamProgress.pdf"
+      "attachment; filename=JapamProgress.pdf",
     );
 
     generatePDFsAndStreamZip(
@@ -159,7 +150,7 @@ export async function downloadSubscription(
       event.title,
       subscriptionId,
       100000,
-      res
+      res,
     );
   } catch (error) {
     res.status(500).send("Error retrieving subscription");
