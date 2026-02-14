@@ -359,12 +359,14 @@ export async function searchEvents(req: any, res: Response): Promise<void> {
       query,
       scope = "public",
       subscriptionFilter = "all",
+      sortBy = "oldest",
       page = 1,
       limit = 20,
     } = req.body;
 
     const userObjectId = new mongoose.Types.ObjectId(userId as string);
     const skip = (Math.max(1, page) - 1) * limit;
+    const sortDirection = sortBy === "newest" ? -1 : 1;
 
     // Get blocked user IDs
     const blockedUsers = await Block.find({ blocker_id: userId });
@@ -406,7 +408,7 @@ export async function searchEvents(req: any, res: Response): Promise<void> {
     // Build aggregation pipeline
     const basePipeline: any[] = [
       { $match: matchConditions },
-      { $sort: { timestamp: -1 } },
+      { $sort: { timestamp: sortDirection } },
       // Simple $lookup — gets all subscriptions for each event
       {
         $lookup: {
