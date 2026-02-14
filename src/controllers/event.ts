@@ -355,9 +355,16 @@ export async function searchEvents(req: any, res: Response): Promise<void> {
       return;
     }
 
-    const { query, scope = "public", subscriptionFilter = "all" } = req.body;
+    const {
+      query,
+      scope = "public",
+      subscriptionFilter = "all",
+      page = 1,
+      limit = 20,
+    } = req.body;
 
     const userObjectId = new mongoose.Types.ObjectId(userId as string);
+    const skip = (Math.max(1, page) - 1) * limit;
 
     // Get blocked user IDs
     const blockedUsers = await Block.find({ blocker_id: userId });
@@ -397,29 +404,31 @@ export async function searchEvents(req: any, res: Response): Promise<void> {
     }
 
     // Build aggregation pipeline
-    const pipeline: any[] = [
+    const basePipeline: any[] = [
       { $match: matchConditions },
       { $sort: { timestamp: -1 } },
-      // Lookup user's subscription for each event
+      // Simple $lookup — gets all subscriptions for each event
       {
         $lookup: {
           from: "subscriptions",
-          let: { eventId: "$_id" },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ["$event", "$$eventId"] },
-                    { $eq: ["$user", userObjectId] },
-                  ],
-                },
-              },
-            },
-          ],
+          localField: "_id",
+          foreignField: "event",
           as: "_subscriptions",
         },
       },
+      // Filter to only the current user's subscription
+      {
+        $addFields: {
+          _subscriptions: {
+            $filter: {
+              input: "$_subscriptions",
+              as: "sub",
+              cond: { $eq: ["$$sub.user", userObjectId] },
+            },
+          },
+        },
+      },
+      // Map to clean subscription object or null
       {
         $addFields: {
           subscription: {
@@ -441,21 +450,38 @@ export async function searchEvents(req: any, res: Response): Promise<void> {
 
     // Apply subscription filter
     if (subscriptionFilter === "subscribed") {
-      pipeline.push({ $match: { subscription: { $ne: null } } });
+      basePipeline.push({ $match: { subscription: { $ne: null } } });
     } else if (subscriptionFilter === "not_subscribed") {
-      pipeline.push({ $match: { subscription: null } });
+      basePipeline.push({ $match: { subscription: null } });
     }
 
-    // Clean up: remove internal fields
-    pipeline.push({
-      $project: {
-        _subscriptions: 0,
-        reports: 0,
-      },
-    });
+    // Get total count
+    const countResult = await Event.aggregate([
+      ...basePipeline,
+      { $count: "total" },
+    ]);
+    const total = countResult.length > 0 ? countResult[0].total : 0;
 
-    const results = await Event.aggregate(pipeline);
-    res.status(200).json(results);
+    // Get paginated results
+    const results = await Event.aggregate([
+      ...basePipeline,
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $project: {
+          _subscriptions: 0,
+          reports: 0,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      results,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error: any) {
     console.error("Search events error:", error);
     res.status(500).json({ message: "Failed to search events" });
