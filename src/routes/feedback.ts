@@ -1,6 +1,6 @@
 // src/routes/feedback.ts
 import express from "express";
-import { submitFeedback, getFeedbackHistory, getAllFeedback } from "../controllers/feedback";
+import { submitFeedback, getFeedbackHistory, getAllFeedback, updateFeedbackStatus } from "../controllers/feedback";
 
 const router = express.Router();
 
@@ -12,5 +12,8 @@ router.get("/history", getFeedbackHistory);
 
 // Get all feedback (admin only)
 router.get("/all", getAllFeedback);
+
+// Update feedback status (admin only)
+router.patch("/:id/status", updateFeedbackStatus);
 
 export default router;

@@ -152,3 +152,48 @@ export async function getAllFeedback(
     res.status(500).json({ message: "Failed to retrieve feedback" });
   }
 }
+
+export async function updateFeedbackStatus(
+  req: any,
+  res: Response,
+): Promise<void> {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ message: "User not authenticated" });
+      return;
+    }
+
+    const user = await User.findById(userId);
+    if (!user || !user.is_admin) {
+      res.status(403).json({ message: "Access denied. Admin privileges required." });
+      return;
+    }
+
+    const { status } = req.body;
+    const validStatuses = ["pending", "reviewed", "resolved"];
+    if (!status || !validStatuses.includes(status)) {
+      res.status(400).json({
+        message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+      });
+      return;
+    }
+
+    const feedbackId = req.params.id;
+    const updated = await Feedback.findByIdAndUpdate(
+      feedbackId,
+      { status },
+      { new: true },
+    );
+
+    if (!updated) {
+      res.status(404).json({ message: "Feedback not found" });
+      return;
+    }
+
+    res.status(200).json(updated);
+  } catch (error: any) {
+    console.error("Update feedback status error:", error);
+    res.status(500).json({ message: "Failed to update feedback status" });
+  }
+}
