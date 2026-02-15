@@ -11,6 +11,7 @@ import metricsRoutes from "./routes/metrics";
 import logRoutes from "./routes/log";
 import dashboardRoutes from "./routes/dashboard";
 import feedbackRoutes from "./routes/feedback";
+import analyticsV2Routes from "./routes/analyticsV2";
 import dotenv from "dotenv";
 import { connectToDatabase } from "./db";
 import cors from "cors";
@@ -82,6 +83,7 @@ async function startServer() {
     app.use("/metrics", authenticateToken, metricsRoutes);
     app.use("/dashboard", authenticateToken, dashboardRoutes);
     app.use("/feedback", authenticateToken, feedbackRoutes);
+    app.use("/analytics/v2", authenticateToken, analyticsV2Routes);
 
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
