@@ -73,13 +73,29 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
 
 export async function updateUser(req: Request, res: Response): Promise<void> {
   const userId = req.params.id;
-  const { first_name, last_name } = req.body;
+
+  const allowedFields = [
+    "first_name",
+    "last_name",
+    "email",
+    "date_of_birth",
+    "bio",
+    "phone",
+    "location",
+  ];
+
+  const updates: Record<string, any> = {};
+  for (const field of allowedFields) {
+    if (req.body[field] !== undefined) {
+      updates[field] = req.body[field] === "" ? null : req.body[field];
+    }
+  }
 
   try {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { first_name, last_name },
-      { new: true, runValidators: true }
+      updates,
+      { new: true, runValidators: true },
     );
 
     if (updatedUser) {
@@ -125,7 +141,7 @@ export async function getTerms(req: Request, res: Response): Promise<void> {
   }
 }
 
-// Example deleteUser handler with authentication
+// Delete user account (soft delete via tombstonedDate)
 export const deleteUser = async (req: any, res: Response) => {
   try {
     const userId = req.params.id;
@@ -149,7 +165,7 @@ export const deleteUser = async (req: any, res: Response) => {
       {
         upsert: false,
         runValidators: true,
-      }
+      },
     );
 
     if (!deletedUser) {

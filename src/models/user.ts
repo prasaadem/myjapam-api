@@ -12,6 +12,11 @@ interface IUser extends Document {
   first_name: string;
   last_name: string;
   is_admin: boolean;
+  email?: string;
+  date_of_birth?: Date;
+  bio?: string;
+  phone?: string;
+  location?: string;
   generateAuthToken: () => string;
   tombstonedDate?: Date;
   createdDate?: Date;
@@ -43,6 +48,23 @@ const userSchema = new Schema<IUser>({
     type: Boolean,
     default: false,
   },
+  email: {
+    type: String,
+    match: /^\S+@\S+\.\S+$/,
+  },
+  date_of_birth: {
+    type: Date,
+  },
+  bio: {
+    type: String,
+    maxlength: 200,
+  },
+  phone: {
+    type: String,
+  },
+  location: {
+    type: String,
+  },
   tombstonedDate: {
     type: Date,
   },
@@ -73,14 +95,14 @@ userSchema.methods.generateAuthToken = function (): string {
   const token = jwt.sign(
     { userId: user._id, is_admin: user.is_admin },
     process.env.SECRET_KEY as string,
-    {}
+    {},
   );
   return token;
 };
 
 userSchema.statics.findByCredentials = async function (
   username: string,
-  password: string
+  password: string,
 ): Promise<IUser | null> {
   const user = await this.findOne({
     username,
