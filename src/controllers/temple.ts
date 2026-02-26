@@ -100,7 +100,7 @@ async function fetchFromGoogle(
   return response.data.results || [];
 }
 
-// ─── GET /temples/nearby?lat=X&lng=Y&radius=5000 ─────────────────────────────
+// ─── GET /temples/nearby?lat=X&lng=Y&radius=50000 ────────────────────────────
 export async function getNearby(req: any, res: Response): Promise<void> {
   try {
     const userId = req.user?.userId;
@@ -111,7 +111,7 @@ export async function getNearby(req: any, res: Response): Promise<void> {
 
     const lat = parseFloat(req.query.lat as string);
     const lng = parseFloat(req.query.lng as string);
-    const radius = parseInt(req.query.radius as string) || 5000;
+    const radius = parseInt(req.query.radius as string) || 50000;
 
     if (isNaN(lat) || isNaN(lng)) {
       res.status(400).json({ message: "lat and lng query params are required" });

@@ -14,6 +14,7 @@ import feedbackRoutes from "./routes/feedback";
 import analyticsV2Routes from "./routes/analyticsV2";
 import festivalRoutes from "./routes/festival";
 import templeRoutes from "./routes/temple";
+import appSettingsRoutes from "./routes/appSettings";
 import dotenv from "dotenv";
 import { connectToDatabase } from "./db";
 import cors from "cors";
@@ -88,6 +89,7 @@ async function startServer() {
     app.use("/analytics/v2", authenticateToken, analyticsV2Routes);
     app.use("/festivals", authenticateToken, festivalRoutes);
     app.use("/temples", authenticateToken, templeRoutes);
+    app.use("/settings", authenticateToken, appSettingsRoutes);
 
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
