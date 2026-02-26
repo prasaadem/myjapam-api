@@ -6,7 +6,6 @@ import Log from "../../models/log";
 import Metrics from "../../models/metrics";
 import User from "../../models/user";
 import mailer from "../../helpers/sesMailer";
-
 export const performNightlyTask = async (dateStr?: string) => {
   try {
     console.log(`Nightly task started`);
@@ -187,3 +186,4 @@ const updateUserMetrics = async (upperDate: Date, lowerDate: Date) => {
     console.log("Error with user metrics", e.message);
   }
 };
+
