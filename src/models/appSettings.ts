@@ -6,6 +6,7 @@ export interface IAppSettings extends Document {
   sacredTabEnabled: boolean;
   templesEnabled: boolean;
   festivalsEnabled: boolean;
+  adminOverride: boolean; // when true, admins bypass all flags and see everything enabled
   updatedBy?: string;
   updatedAt: Date;
 }
@@ -16,6 +17,7 @@ const appSettingsSchema = new Schema<IAppSettings>(
     sacredTabEnabled: { type: Boolean, default: true },
     templesEnabled: { type: Boolean, default: true },
     festivalsEnabled: { type: Boolean, default: true },
+    adminOverride: { type: Boolean, default: true },
     updatedBy: { type: String },
   },
   { timestamps: true }
