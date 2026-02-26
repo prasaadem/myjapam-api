@@ -24,6 +24,7 @@ export async function getSettings(req: any, res: Response): Promise<void> {
       sacredTabEnabled: settings.sacredTabEnabled,
       templesEnabled: settings.templesEnabled,
       festivalsEnabled: settings.festivalsEnabled,
+      adminOverride: settings.adminOverride,
     });
   } catch (error: any) {
     console.error("Get settings error:", error);
@@ -36,12 +37,13 @@ export async function updateSettings(req: any, res: Response): Promise<void> {
   try {
     if (!(await requireAdmin(req.user?.userId, res))) return;
 
-    const { sacredTabEnabled, templesEnabled, festivalsEnabled } = req.body;
+    const { sacredTabEnabled, templesEnabled, festivalsEnabled, adminOverride } = req.body;
 
     const update: any = { updatedBy: req.user.userId };
     if (sacredTabEnabled !== undefined) update.sacredTabEnabled = sacredTabEnabled;
     if (templesEnabled !== undefined) update.templesEnabled = templesEnabled;
     if (festivalsEnabled !== undefined) update.festivalsEnabled = festivalsEnabled;
+    if (adminOverride !== undefined) update.adminOverride = adminOverride;
 
     if (Object.keys(update).length === 1) {
       res.status(400).json({ message: "No flags provided to update" });
@@ -59,6 +61,7 @@ export async function updateSettings(req: any, res: Response): Promise<void> {
       sacredTabEnabled: settings.sacredTabEnabled,
       templesEnabled: settings.templesEnabled,
       festivalsEnabled: settings.festivalsEnabled,
+      adminOverride: settings.adminOverride,
     });
   } catch (error: any) {
     console.error("Update settings error:", error);
