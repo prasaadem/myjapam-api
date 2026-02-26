@@ -1,6 +1,7 @@
 // src/controllers/temple.ts
 import { Response } from "express";
 import axios from "axios";
+import mongoose from "mongoose";
 import Temple from "../models/temple";
 import TempleSearchCache from "../models/templeSearchCache";
 import TempleVisit from "../models/templeVisit";
@@ -192,7 +193,7 @@ export async function getNearby(req: any, res: Response): Promise<void> {
     // ── 2. Get this user's visit counts for each temple ───────────────
     const placeIds = temples.map((t: any) => t.placeId);
     const visitCounts = await TempleVisit.aggregate([
-      { $match: { userId: userId, placeId: { $in: placeIds } } },
+      { $match: { userId: new mongoose.Types.ObjectId(userId), placeId: { $in: placeIds } } },
       { $group: { _id: "$placeId", count: { $sum: 1 }, lastVisit: { $max: "$visitedAt" } } },
     ]);
 
