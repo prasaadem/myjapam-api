@@ -8,18 +8,24 @@ import Badge from "../models/badge";
 const AWS = require("aws-sdk");
 
 export async function createLog(req: Request, res: Response): Promise<void> {
-  const { eventId, userId } = req.body;
+  const { eventId, userId, subscriptionId } = req.body;
 
   try {
-    // Check if a subscription exists for the specified userId and eventId
-    const existingSubscription = await Subscription.findOne({
-      user: userId,
-      event: eventId,
-    });
+    // If subscriptionId is provided (mala events), look up that specific subscription.
+    // Otherwise fall back to finding by (user, event) — existing japam behavior.
+    let existingSubscription;
+    if (subscriptionId) {
+      existingSubscription = await Subscription.findById(subscriptionId);
+    } else {
+      existingSubscription = await Subscription.findOne({
+        user: userId,
+        event: eventId,
+      });
+    }
 
     if (!existingSubscription) {
       res.status(400).json({
-        message: "You are not subscribed to this eveny.",
+        message: "You are not subscribed to this event.",
       });
       return;
     }
@@ -30,26 +36,32 @@ export async function createLog(req: Request, res: Response): Promise<void> {
     });
     await newLog.save();
 
-    const updatedSubscription = await Subscription.findOneAndUpdate(
-      { user: userId, event: eventId },
-      { sum: newLog.sum },
+    // For mala (subscriptionId given): increment that subscription's sum by 1.
+    // For japam: use the cumulative log sum (existing behavior).
+    const newSum = subscriptionId
+      ? (existingSubscription.sum as number) + 1
+      : newLog.sum;
+
+    const updatedSubscription = await Subscription.findByIdAndUpdate(
+      existingSubscription._id,
+      { sum: newSum },
       { new: true }
     );
 
-    const badges: IBadgeInfo[] = determineBadges(newLog.sum);
+    const badges: IBadgeInfo[] = determineBadges(newSum);
 
     const badgeReqs = badges.map((b: IBadgeInfo) =>
       Badge.findOneAndUpdate(
         {
           userId,
-          subscriptionId: existingSubscription._id,
+          subscriptionId: existingSubscription!._id,
           eventId,
-          badgeType: b.type, // Adding eventId ensures badge uniqueness per event
+          badgeType: b.type,
         },
         {
           $setOnInsert: {
             userId,
-            subscriptionId: existingSubscription._id,
+            subscriptionId: existingSubscription!._id,
             eventId,
           },
           $set: {
@@ -64,13 +76,14 @@ export async function createLog(req: Request, res: Response): Promise<void> {
       )
     );
 
-    const result = await Promise.all(badgeReqs);
+    await Promise.all(badgeReqs);
 
     if (!updatedSubscription) {
       res.status(404).json({ error: "Subscription not found" });
+      return;
     }
 
-    res.status(201).json(newLog);
+    res.status(201).json({ ...newLog.toObject(), sum: newSum });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
   }
