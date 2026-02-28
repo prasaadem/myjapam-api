@@ -22,16 +22,19 @@ export async function createSubscription(
       return;
     }
 
-    // Check if the subscription already exists for the given event and user
-    const existingSubscription = await Subscription.findOne({
-      event: eventId,
-      user: userId,
-    });
-    if (existingSubscription) {
-      res.status(400).json({
-        message: "Subscription already exists for this event and user",
+    // For japam events, enforce one subscription per user
+    // Mala events allow multiple subscriptions (each = one mala round)
+    if ((event.eventType ?? "japam") !== "mala") {
+      const existingSubscription = await Subscription.findOne({
+        event: eventId,
+        user: userId,
       });
-      return;
+      if (existingSubscription) {
+        res.status(400).json({
+          message: "Subscription already exists for this event and user",
+        });
+        return;
+      }
     }
 
     // Create a new subscription

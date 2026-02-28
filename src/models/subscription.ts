@@ -26,8 +26,8 @@ const subscriptionSchema = new Schema({
   sum: { type: Number, default: 0 },
 });
 
-// Create a compound unique index on 'event' and 'user'
-subscriptionSchema.index({ event: 1, user: 1 }, { unique: true });
+// Compound index for query performance (non-unique — mala events allow multiple subscriptions per user)
+subscriptionSchema.index({ event: 1, user: 1 });
 
 const Subscription = mongoose.model<ISubscription>(
   "Subscription",

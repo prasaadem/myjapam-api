@@ -15,6 +15,7 @@ interface IEvent extends Document {
   eventCode: string;
   eventCount: number;
   value: number;
+  eventType: "japam" | "mala";
   visibility: string;
   timestamp: Date;
   url: string;
@@ -48,6 +49,11 @@ const eventSchema = new Schema({
     type: Number,
     min: 1,
     required: true,
+  },
+  eventType: {
+    type: String,
+    enum: ["japam", "mala"],
+    default: "japam",
   },
   visibility: {
     type: String,

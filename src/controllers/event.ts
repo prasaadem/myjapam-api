@@ -11,7 +11,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export async function createEvent(req: any, res: Response): Promise<void> {
-  const { title, subtitle, maxSubscriberCount, value, visibility, user_id } =
+  const { title, subtitle, maxSubscriberCount, value, visibility, user_id, eventType } =
     req.body;
 
   try {
@@ -22,11 +22,15 @@ export async function createEvent(req: any, res: Response): Promise<void> {
       url = await uploadToS3(file);
     }
 
+    // Mala events always have 108 beads
+    const resolvedValue = eventType === "mala" ? 108 : value;
+
     const newEvent = new Event({
       title,
       subtitle,
       maxSubscriberCount,
-      value,
+      value: resolvedValue,
+      eventType: eventType ?? "japam",
       visibility,
       url,
       user_id,
